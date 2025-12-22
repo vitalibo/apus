@@ -1,0 +1,35 @@
+version = 1
+revision = 3
+requires-python = ">=3.9"
+resolution-markers = [
+    "python_full_version >= '3.10'",
+    "python_full_version < '3.10'",
+]
+
+[manifest]
+members = [
+    "apus",
+    "apus-api",
+    "apus-shared",
+]
+
+[[package]]
+name = "apus"
+version = "0.1.0"
+source = { editable = "." }
+
+[[package]]
+name = "apus-api"
+version = "0.1.0"
+source = { virtual = "apus-api" }
+dependencies = [
+    { name = "apus-shared" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "apus-shared", editable = "apus-shared" }]
+
+[[package]]
+name = "apus-shared"
+version = "0.1.0"
+source = { editable = "apus-shared" }

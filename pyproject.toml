@@ -1,0 +1,17 @@
+[project]
+name = "apus"
+version = "0.1.0"
+description = "APUS is a set of modules for building a Data Platform"
+authors = ["Vitaliy Boyarsky <boyarsky.vitaliy@live.com>"]
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+    "apus-shared",
+    "apus-api"
+]
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"

@@ -1,0 +1,11 @@
+[project]
+name = "apus-api"
+version = "0.1.0"
+description = "API Gateway for APUS"
+requires-python = ">=3.9"
+dependencies = [
+    "apus-shared"
+]
+
+[tool.uv.sources]
+apus-shared = { workspace = true }

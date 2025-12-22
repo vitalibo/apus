@@ -1,0 +1,7 @@
+[project]
+name = "apus-shared"
+version = "0.1.0"
+description = "Reusable code for APUS"
+requires-python = ">=3.9"
+dependencies = [
+]
