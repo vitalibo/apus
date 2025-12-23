@@ -2,16 +2,20 @@
 name = "apus"
 version = "0.1.0"
 description = "APUS is a set of modules for building a Data Platform"
-authors = ["Vitaliy Boyarsky <boyarsky.vitaliy@live.com>"]
+authors = [
+    { name = "Vitaliy Boyarsky", email = "boyarsky.vitaliy@live.com" },
+]
 requires-python = ">=3.9"
 dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest==8.4.2",
+    "ruff==0.14.10"
+]
 
 [tool.uv.workspace]
 members = [
     "apus-shared",
     "apus-api"
 ]
-
-[build-system]
-requires = ["uv_build"]
-build-backend = "uv_build"
