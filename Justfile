@@ -7,6 +7,10 @@ mod apus-api "apus-api/Justfile"
 default:
     @just --list
 
+# install dependencies
+install:
+    uv sync --locked --all-packages --all-extras --dev
+
 # run code formatter
 format *args:
     just apus-shared::format {{ args }}

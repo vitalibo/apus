@@ -3,12 +3,12 @@ default:
     @just --list
 
 # run code formatter
-format:
-    uvx ruff format ./src/ ./tests/
+format *args:
+    uvx ruff format {{ args }} ./src/ ./tests/
 
 # run code style checks
-style:
-    uvx ruff check ./src/ ./tests/
+style *args:
+    uvx ruff check --config ../ruff.toml {{ args }} ./src/ ./tests/
 
 # run unit tests
 test:
