@@ -1,12 +1,17 @@
-from typing import TypeVar, Annotated, Generic, Type
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Annotated, Generic, TypeVar
 
 import pydantic
-from pydantic import ConfigDict, Field, RootModel
+from pydantic import ConfigDict, Field
+
+if TYPE_CHECKING:
+    from pydantic import RootModel
 
 __all__ = [
     'BaseModel',
     'Metadata',
-    'Resource'
+    'Resource',
 ]
 
 T = TypeVar('T', bound=pydantic.BaseModel)
@@ -19,7 +24,7 @@ class BaseModel(pydantic.BaseModel):
         extra='forbid',
         frozen=True,
         str_min_length=1,
-        str_strip_whitespace=True
+        str_strip_whitespace=True,
     )
 
     def __str__(self):
@@ -28,7 +33,7 @@ class BaseModel(pydantic.BaseModel):
 
 _NameStr = _NamespaceStr = Annotated[
     str,
-    Field(..., min_length=1, max_length=64, pattern='^[A-Za-z][A-Za-z0-9_-]+$')
+    Field(..., min_length=1, max_length=64, pattern='^[A-Za-z][A-Za-z0-9_-]+$'),
 ]
 
 _LabelDict = _AnnotationDict = Annotated[
@@ -36,7 +41,7 @@ _LabelDict = _AnnotationDict = Annotated[
         Annotated[str, Field(..., min_length=1, max_length=32, pattern=r'^[A-Za-z][A-Za-z0-9_/-]+$')],
         Annotated[str, Field(..., min_length=0, max_length=256)],
     ],
-    Field(..., default_factory=dict, min_length=0, max_length=16)
+    Field(..., default_factory=dict, min_length=0, max_length=16),
 ]
 
 
@@ -58,5 +63,5 @@ class Resource(BaseModel, Generic[T]):
     spec: T
 
 
-def create_resource() -> Type[RootModel[Resource]]:
+def create_resource() -> type[RootModel[Resource]]:
     pass

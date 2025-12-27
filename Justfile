@@ -8,14 +8,14 @@ default:
     @just --list
 
 # run code formatter
-format:
-    just apus-shared::format
-    just apus-api::format
+format *args:
+    just apus-shared::format {{ args }}
+    just apus-api::format {{ args }}
 
 # run code style checks
-style:
-    just apus-shared::style
-    just apus-api::style
+style *args:
+    just apus-shared::style {{ args }}
+    just apus-api::style {{ args }}
 
 # run unit tests
 test:

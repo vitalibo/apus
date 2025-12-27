@@ -1,24 +1,29 @@
+from __future__ import annotations
+
 import typing
 from collections import defaultdict
 from functools import reduce
-from typing import Annotated, Any, Literal, Optional, Union
+from itertools import starmap
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Optional, Union
 
 import pydantic
 from pydantic import BeforeValidator, Discriminator, Field, Tag
 from pydantic_core import PydanticCustomError
-from pydantic_core.core_schema import ValidationInfo
+
+if TYPE_CHECKING:
+    from pydantic_core.core_schema import ValidationInfo
 
 from apus_shared.models import BaseModel
 
 __all__ = [
-    'overridable',
-    'generic',
-    'reference',
-    'optional_fields',
-    'expand_obj',
-    'expand_list',
     'expand_dict',
-    'subclasses'
+    'expand_list',
+    'expand_obj',
+    'generic',
+    'optional_fields',
+    'overridable',
+    'reference',
+    'subclasses',
 ]
 
 overridable = object()
@@ -29,36 +34,35 @@ T = typing.TypeVar('T', bound=BaseModel)
 def generic(cls: type[BaseModel]) -> type[BaseModel]:
     """Create a generic class that can represent any of the subclasses for a given class."""
 
-    classes = [cls] + subclasses(cls)
+    classes = [cls, *subclasses(cls)]
     if len(classes) == 1:
         return cls
 
     fields = []
     for subclass in classes:
         for field_name, field_info in subclass.model_fields.items():
-            if typing.get_origin(field_info.annotation) == Literal \
-                    and field_name not in fields:  # pylint: disable=comparison-with-callable
+            if typing.get_origin(field_info.annotation) == Literal and field_name not in fields:
                 fields.append(field_name)
     if not fields:
         raise ValueError('at least one field with type typing.Literal is required')
 
     tag_class = {}
-    for subclass in classes:  # pylint: disable=too-many-nested-blocks
+    for subclass in classes:  # noqa: PLR1702
         try:
             tag = ()
             for field_name in fields:
                 field_info = subclass.model_fields.get(field_name, None)
                 if field_info is None:
+                    raise ValueError(f'{subclass.__name__}. discriminator field {field_name} is required')
+                if typing.get_origin(field_info.annotation) != Literal:
                     raise ValueError(
-                        f'{subclass.__name__}. discriminator field {field_name} is required')
-                if typing.get_origin(field_info.annotation) != Literal:  # pylint: disable=comparison-with-callable
-                    raise ValueError(
-                        f'{subclass.__name__}. discriminator field {field_name} must be of type typing.Literal')
+                        f'{subclass.__name__}. discriminator field {field_name} must be of type typing.Literal'
+                    )
                 literal, *_ = typing.get_args(field_info.annotation)
                 tag = (*tag, literal)
 
             tag_class[tag] = subclass
-        except ValueError as e:
+        except ValueError as e:  # noqa: PERF203
             if subclass != cls or str(e).endswith('type typing.Literal'):
                 raise e
 
@@ -66,17 +70,21 @@ def generic(cls: type[BaseModel]) -> type[BaseModel]:
         return tag_class.popitem()[1]
 
     return Annotated[
-        reduce(lambda acc, obj: typing.Union[acc, obj], (
-            Annotated[cls, Tag('::'.join(tag))] for tag, cls in tag_class.items()
-        )),
-        Discriminator(lambda obj: '::'.join(
-            obj.get(field, 'None') if isinstance(obj, dict) else '' for field in fields
-        ))
+        reduce(
+            lambda acc, obj: typing.Union[acc, obj],
+            (Annotated[cls, Tag('::'.join(tag))] for tag, cls in tag_class.items()),
+        ),
+        Discriminator(
+            lambda obj: '::'.join(obj.get(field, 'None') if isinstance(obj, dict) else '' for field in fields)
+        ),
     ]
 
 
 def reference(
-        cls: type[T], field_name: str = 'id', include_fields: set[str] = None, exclude_fields: set[str] = None
+    cls: type[T],
+    field_name: str = 'id',
+    include_fields: set[str] | None = None,
+    exclude_fields: set[str] | None = None,
 ) -> type[T]:
     """Resolve a reference to a resource by its field name."""
 
@@ -92,25 +100,23 @@ def reference(
         resource_name = value[field_name]
         resource_obj = info.context.get(cls.__kind__, {}).get(resource_name)
         if resource_obj is None:
-            raise PydanticCustomError('reference.not_found',
-                                      f"the reference '{resource_name}' not found")
+            raise PydanticCustomError('reference.not_found', f"the reference '{resource_name}' not found")
 
-        return {
-            **resource_obj['spec'],
-            **{key: value[key] for key in value if key != field_name}
-        }
+        return {**resource_obj['spec'], **{key: value[key] for key in value if key != field_name}}
 
     fields = optional_fields(cls, include_fields, exclude_fields)
     validator = pydantic.create_model(cls.__name__ + 'Val', __base__=BaseModel, **{field_name: (str, ...)}, **fields)
     return Annotated[generic(cls), BeforeValidator(resolve_reference), BeforeValidator(verify_allowed_extra)]
 
 
-def optional_fields(cls: type[BaseModel], include_fields: set[str] = None, exclude_fields: set[str] = None) -> dict:
+def optional_fields(
+    cls: type[BaseModel], include_fields: set[str] | None = None, exclude_fields: set[str] | None = None
+) -> dict:
     """Create a dictionary of optional fields for a given class."""
 
     def optional(field):
         annotation = field.annotation
-        attributes_set = dict(field._attributes_set)  # pylint: disable=protected-access
+        attributes_set = dict(field._attributes_set)  # noqa: SLF001
         if typing.get_origin(field.annotation) != Optional:
             annotation = Optional[annotation]
 
@@ -118,10 +124,12 @@ def optional_fields(cls: type[BaseModel], include_fields: set[str] = None, exclu
 
     fields = {}
     fields_info = defaultdict(set)
-    for subclass in [cls] + cls.__subclasses__():
+    for subclass in [cls, *cls.__subclasses__()]:
         for field_name, field_info in subclass.model_fields.items():
-            if not ((field_name not in (exclude_fields or {})) and
-                    ((field_name in (include_fields or {})) or (overridable in field_info.metadata))):
+            if not (
+                (field_name not in (exclude_fields or {}))
+                and ((field_name in (include_fields or {})) or (overridable in field_info.metadata))
+            ):
                 continue
 
             infos = fields_info[field_name]
@@ -172,7 +180,7 @@ def expand_list(field_name: str = 'id') -> BeforeValidator:
 
     def parse_root(value: Any) -> Any:
         if isinstance(value, dict):
-            return [parse_dict(key, val) for key, val in value.items()]
+            return list(starmap(parse_dict, value.items()))
 
         if isinstance(value, list):
             return [parse_list(val) for val in value]
@@ -207,20 +215,15 @@ def expand_dict(field_name: str = 'id') -> BeforeValidator:
 
     def parse_root(value: Any) -> Any:
         if isinstance(value, dict):
-            return {
-                key: parse_dict(key, val)
-                for key, val in value.items()
-            }
+            return {key: parse_dict(key, val) for key, val in value.items()}
 
         if isinstance(value, list):
             out = {}
             for i, val in enumerate(value):
-                key, val = parse_list(i, val)
+                key, list_val = parse_list(i, val)
                 if key in out:
-                    raise PydanticCustomError(
-                        'dict.unique_keys',
-                        f"the dict has duplicated key '{key}'")
-                out[key] = val
+                    raise PydanticCustomError('dict.unique_keys', f"the dict has duplicated key '{key}'")
+                out[key] = list_val
             return out
 
         # wrong type, return the value as-is
