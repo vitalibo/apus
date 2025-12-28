@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import re
+from enum import Enum
 from functools import reduce
-from typing import Annotated, Generic, TypeVar, Union
+from typing import Annotated, Generic, Literal, Optional, TypeVar, Union
 
 import pydantic
 from pydantic import ConfigDict, Discriminator, Field, RootModel, Tag
+from pyxis.enum import EnumMixin
 
 __all__ = [
     'BaseModel',
+    'Connection',
+    'Engine',
     'Metadata',
     'Resource',
     'create_resource',
@@ -98,3 +102,45 @@ def create_resource() -> type[RootModel[Resource]]:
             Discriminator(resource_discriminator),
         ]
     ]
+
+
+class Engine(str, EnumMixin, Enum):
+    """Supported engines."""
+
+    MYSQL = 'mysql'
+    POSTGRESQL = 'postgresql'
+    SNOWFLAKE = 'snowflake'
+
+    @property
+    def driver(self):
+        return {
+            self.MYSQL: 'mysql+pymysql',
+            self.POSTGRESQL: 'postgresql+psycopg2',
+            self.SNOWFLAKE: 'snowflake',
+        }[self]
+
+
+class Connection(BaseModel):
+    """Connection to a database."""
+
+    __api_version__ = 'apus/v1'
+    __kind__ = 'Connection'
+
+    engine: Literal[Engine.MYSQL, Engine.POSTGRESQL]
+    host: str
+    port: Annotated[int, Field(..., ge=0, le=65535)]
+    username: str
+    password: str
+    database: str
+    properties: Annotated[dict[str, str], Field(default_factory=dict)]
+
+
+class SnowflakeConnection(Connection):
+    """Connection to a Snowflake database."""
+
+    engine: Literal[Engine.SNOWFLAKE]
+    port: int = 443
+    password: None = None  # deprecated single-factor password sign-in
+    private_key: str
+    warehouse: Optional[str] = None
+    role: Optional[str] = None

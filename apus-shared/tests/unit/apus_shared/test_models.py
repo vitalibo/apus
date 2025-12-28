@@ -4,8 +4,10 @@ import pytest
 from pydantic import ValidationError
 
 from apus_shared import models
-from apus_shared.models import BaseModel, create_resource
-from unit.apus_shared.helpers import create_model, extract_errors
+from apus_shared.models import BaseModel, Connection, Engine, create_resource
+from unit.apus_shared.helpers import create_model, extract_errors, resource_as_objs
+
+Resource = create_resource()
 
 
 def test_create_resource():  # noqa: PLR0915
@@ -67,6 +69,60 @@ def test_create_resource():  # noqa: PLR0915
         resource(**create_json_resource(api_version='v1', kind='Third', spec={'type': 'subclass_c', 'value': 'qwer'}))
     assert extract_errors(e) == [('union_tag_invalid', ('Third/v1', 'spec'))]
     assert cls_fifth is not None
+
+
+def test_connection(subtests):
+    objs = resource_as_objs(__file__, 'data/connections.yaml')
+
+    with subtests.test('mysql'):
+        resource = Resource(**objs[0]).root
+
+        assert resource.api_version == 'apus/v1'
+        assert resource.kind == 'Connection'
+        assert resource.metadata.name == 'MyConnection1'
+        assert isinstance(resource.spec, Connection)
+        assert resource.spec.engine == Engine.MYSQL
+        assert resource.spec.host == 'mysql.example.com'
+        assert resource.spec.port == 3306
+        assert resource.spec.username == 'root'
+        assert resource.spec.password == '5ecr3t'  # pragma: allowlist secret # noqa: S105
+        assert resource.spec.database == 'mydb'
+        assert resource.spec.properties == {
+            'useUnicode': 'true',
+            'characterEncoding': 'UTF-8',
+        }
+
+    with subtests.test('postgres'):
+        resource = Resource(**objs[1]).root
+
+        assert resource.api_version == 'apus/v1'
+        assert resource.kind == 'Connection'
+        assert resource.metadata.name == 'MyConnection2'
+        assert isinstance(resource.spec, Connection)
+        assert resource.spec.engine == Engine.POSTGRESQL
+        assert resource.spec.host == 'postgres.example.com'
+        assert resource.spec.port == 5432
+        assert resource.spec.username == 'admin'
+        assert resource.spec.password == '5ecr3t'  # pragma: allowlist secret # noqa: S105
+        assert resource.spec.database == 'postgres'
+        assert resource.spec.properties == {}
+
+    with subtests.test('snowflake'):
+        resource = Resource(**objs[2]).root
+
+        assert resource.api_version == 'apus/v1'
+        assert resource.kind == 'Connection'
+        assert resource.metadata.name == 'MyConnection3'
+        assert isinstance(resource.spec, Connection)
+        assert resource.spec.engine == Engine.SNOWFLAKE
+        assert resource.spec.host == 'myaccount.snowflakecomputing.com'
+        assert resource.spec.port == 443
+        assert resource.spec.username == 'admin'
+        assert resource.spec.password is None
+        assert resource.spec.private_key == 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASC...'  # pragma: allowlist secret
+        assert resource.spec.database == 'DWH'
+        assert resource.spec.warehouse == 'COMPUTE_WH'
+        assert resource.spec.role == 'SYSADMIN'
 
 
 def create_json_resource(api_version, kind, spec):

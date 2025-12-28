@@ -1,0 +1,41 @@
+apiVersion: apus/v1
+kind: Connection
+metadata:
+  name: MyConnection1
+spec:
+  engine: mysql
+  host: mysql.example.com
+  port: 3306
+  username: root
+  password: 5ecr3t  # pragma: allowlist secret
+  database: mydb
+  properties:
+    useUnicode: 'true'
+    characterEncoding: UTF-8
+
+---
+apiVersion: apus/v1
+kind: Connection
+metadata:
+  name: MyConnection2
+spec:
+  engine: postgresql
+  host: postgres.example.com
+  port: 5432
+  username: admin
+  password: 5ecr3t  # pragma: allowlist secret
+  database: postgres
+
+---
+apiVersion: apus/v1
+kind: Connection
+metadata:
+  name: MyConnection3
+spec:
+  engine: snowflake
+  host: myaccount.snowflakecomputing.com
+  username: admin
+  private_key: MIIEvQIBADANBgkqhkiG9w0BAQEFAASC... # pragma: allowlist secret
+  database: DWH
+  warehouse: COMPUTE_WH
+  role: SYSADMIN

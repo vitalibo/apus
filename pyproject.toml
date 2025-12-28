@@ -5,7 +5,7 @@ description = "APUS is a set of modules for building a Data Platform"
 authors = [
     { name = "Vitaliy Boyarsky", email = "boyarsky.vitaliy@live.com" },
 ]
-requires-python = ">=3.9"
+requires-python = "==3.9.*"
 dependencies = []
 
 [dependency-groups]

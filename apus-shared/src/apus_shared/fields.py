@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import typing
 from collections import defaultdict
 from functools import reduce
@@ -31,7 +32,7 @@ overridable = object()
 T = typing.TypeVar('T', bound=BaseModel)
 
 
-def generic(cls: type[BaseModel]) -> type[BaseModel]:
+def generic(cls: type[BaseModel]) -> type[BaseModel]:  # noqa: PLR0912
     """Create a generic class that can represent any of the subclasses for a given class."""
 
     classes = [cls, *subclasses(cls)]
@@ -49,7 +50,7 @@ def generic(cls: type[BaseModel]) -> type[BaseModel]:
     tag_class = {}
     for subclass in classes:  # noqa: PLR1702
         try:
-            tag = ()
+            tags = []
             for field_name in fields:
                 field_info = subclass.model_fields.get(field_name, None)
                 if field_info is None:
@@ -58,10 +59,11 @@ def generic(cls: type[BaseModel]) -> type[BaseModel]:
                     raise ValueError(
                         f'{subclass.__name__}. discriminator field {field_name} must be of type typing.Literal'
                     )
-                literal, *_ = typing.get_args(field_info.annotation)
-                tag = (*tag, literal)
+                literals = typing.get_args(field_info.annotation)
+                tags = [*tags, literals]
 
-            tag_class[tag] = subclass
+            for tag in itertools.product(*tags):
+                tag_class[tag] = subclass
         except ValueError as e:  # noqa: PERF203
             if subclass != cls or str(e).endswith('type typing.Literal'):
                 raise e
@@ -84,8 +86,8 @@ def generic(cls: type[BaseModel]) -> type[BaseModel]:
 def reference(
     cls: type[T],
     field_name: str = 'id',
-    include_fields: set[str] | None = None,
-    exclude_fields: set[str] | None = None,
+    include_fields: Optional[set[str]] = None,
+    exclude_fields: Optional[set[str]] = None,
 ) -> type[T]:
     """Resolve a reference to a resource by its field name."""
 
@@ -111,7 +113,9 @@ def reference(
 
 
 def optional_fields(
-    cls: type[BaseModel], include_fields: set[str] | None = None, exclude_fields: set[str] | None = None
+    cls: type[BaseModel],
+    include_fields: Optional[set[str]] = None,
+    exclude_fields: Optional[set[str]] = None,
 ) -> dict:
     """Create a dictionary of optional fields for a given class."""
 
