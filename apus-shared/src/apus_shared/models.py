@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Generic, TypeVar
+import re
+from functools import reduce
+from typing import Annotated, Generic, TypeVar, Union
 
 import pydantic
-from pydantic import ConfigDict, Field
-
-if TYPE_CHECKING:
-    from pydantic import RootModel
+from pydantic import ConfigDict, Discriminator, Field, RootModel, Tag
 
 __all__ = [
     'BaseModel',
     'Metadata',
     'Resource',
+    'create_resource',
 ]
 
 T = TypeVar('T', bound=pydantic.BaseModel)
@@ -64,4 +64,37 @@ class Resource(BaseModel, Generic[T]):
 
 
 def create_resource() -> type[RootModel[Resource]]:
-    pass
+    """Creates a pydantic model used to represent any APUS resource."""
+
+    from apus_shared.fields import generic  # noqa: PLC0415
+
+    classes = {}
+    for cls in BaseModel.__subclasses__():
+        if not ('__kind__' in cls.__dict__ and '__api_version__' in cls.__dict__):
+            continue
+
+        if not re.match(r'^[A-Z][A-Za-z0-9_]+$', cls.__kind__):
+            raise ValueError(f'class {cls.__name__} has invalid kind {cls.__kind__}')
+        if not re.match(r'^[a-z][a-z0-9/.]+$', cls.__api_version__):
+            raise ValueError(f'class {cls.__name__} has invalid api version {cls.__api_version__}')
+
+        tag = cls.__kind__ + '/' + cls.__api_version__
+        if tag in classes:
+            raise ValueError(f'tag {tag} is already registered')
+
+        classes[tag] = Annotated[Resource[generic(cls)], Tag(tag)]
+
+    if not classes:
+        raise ValueError('no resource classes found')
+    if len(classes) == 1:
+        return RootModel[classes.popitem()[1]]
+
+    def resource_discriminator(v):
+        return v['kind'] + '/' + v['apiVersion']
+
+    return RootModel[
+        Annotated[
+            reduce(lambda accumulator, resource: Union[accumulator, resource], classes.values()),
+            Discriminator(resource_discriminator),
+        ]
+    ]
