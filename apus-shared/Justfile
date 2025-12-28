@@ -4,15 +4,15 @@ default:
 
 # run code formatter
 format *args:
-    uvx ruff format {{ args }} ./src/ ./tests/
+    uv run ruff format {{ args }} ./src/ ./tests/
 
 # run code style checks
 style *args:
-    uvx ruff check --config ../ruff.toml {{ args }} ./src/ ./tests/
+    uv run ruff check --config ../ruff.toml {{ args }} ./src/ ./tests/
 
 # run unit tests
 test:
-    uvx pytest -v -p no:cacheprovider --disable-warnings ./tests/
+    uv run -m pytest -v -p no:cacheprovider --disable-warnings ./tests/
 
 # clean workdir
 clean:
