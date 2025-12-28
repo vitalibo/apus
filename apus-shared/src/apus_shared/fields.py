@@ -69,14 +69,15 @@ def generic(cls: type[BaseModel]) -> type[BaseModel]:
     if len(tag_class) == 1:
         return tag_class.popitem()[1]
 
+    def literal_discriminator(obj):
+        return '::'.join(obj.get(field, 'None') if isinstance(obj, dict) else '' for field in fields)
+
     return Annotated[
         reduce(
             lambda acc, obj: typing.Union[acc, obj],
             (Annotated[cls, Tag('::'.join(tag))] for tag, cls in tag_class.items()),
         ),
-        Discriminator(
-            lambda obj: '::'.join(obj.get(field, 'None') if isinstance(obj, dict) else '' for field in fields)
-        ),
+        Discriminator(literal_discriminator),
     ]
 
 
