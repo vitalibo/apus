@@ -20,6 +20,7 @@ format *args:
 style *args:
     just apus-shared::style {{ args }}
     just apus-api::style {{ args }}
+    uv run pre-commit run --files $(git diff --name-only)
 
 # run unit tests
 test:
