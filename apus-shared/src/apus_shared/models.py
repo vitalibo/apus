@@ -4,8 +4,10 @@ import re
 from enum import Enum
 from functools import reduce
 from typing import Annotated, Generic, Literal, Optional, TypeVar, Union
+from urllib.parse import quote_plus
 
 import pydantic
+import sqlalchemy
 from pydantic import ConfigDict, Discriminator, Field, RootModel, Tag
 from pyxis.enum import EnumMixin
 
@@ -134,6 +136,26 @@ class Connection(BaseModel):
     database: str
     properties: Annotated[dict[str, str], Field(default_factory=dict)]
 
+    def create_engine(self, **kwargs) -> sqlalchemy.Engine:
+        params = {
+            'driver': self.engine.driver,
+            'host': kwargs.get('host', self.host),
+            'port': kwargs.get('port', self.port),
+            'username': kwargs.get('username', self.username),
+            'password': quote_plus(kwargs.get('password', self.password)),
+            'database': kwargs.get('database', self.database),
+        }
+
+        connection_str = '{driver}://{username}:{password}@{host}:{port}/{database}'
+
+        properties = self.properties.copy()
+        properties.update(kwargs.get('properties', {}))
+        if properties:
+            params['props'] = '&'.join(f'{key}={quote_plus(value)}' for key, value in properties.items())
+            connection_str += '?{props}'
+
+        return sqlalchemy.create_engine(connection_str.format(**params))
+
 
 class SnowflakeConnection(Connection):
     """Connection to a Snowflake database."""
@@ -142,5 +164,37 @@ class SnowflakeConnection(Connection):
     port: int = 443
     password: None = None  # deprecated single-factor password sign-in
     private_key: str
+    database: Optional[str] = None
+    schema: Optional[str] = None
     warehouse: Optional[str] = None
     role: Optional[str] = None
+
+    def create_engine(self, **kwargs) -> sqlalchemy.Engine:
+        from snowflake.sqlalchemy import URL  # noqa: PLC0415
+
+        params = {
+            'host': kwargs.get('host', self.host),
+            'port': kwargs.get('port', self.port),
+            'user': kwargs.get('username', self.username),
+        }
+
+        if 'database' in kwargs or self.database:
+            params['database'] = kwargs.get('database', self.database)
+        if 'schema' in kwargs or self.schema:
+            params['schema'] = kwargs.get('schema', self.schema)
+        if 'warehouse' in kwargs or self.warehouse:
+            params['warehouse'] = kwargs.get('warehouse', self.warehouse)
+        if 'role' in kwargs or self.role:
+            params['role'] = kwargs.get('role', self.role)
+
+        if self.properties or 'properties' in kwargs:
+            properties = self.properties.copy()
+            properties.update(kwargs.get('properties', {}))
+            params.update(properties)
+
+        return sqlalchemy.create_engine(
+            URL(**params),
+            connect_args={
+                'private_key': kwargs.get('private_key', self.private_key),
+            },
+        )

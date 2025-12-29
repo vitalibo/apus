@@ -5,7 +5,8 @@ description = "Reusable code for APUS"
 requires-python = "==3.9.*"
 dependencies = [
     "pydantic==2.12.5",
-    "pyxis"
+    "pyxis",
+    "snowflake-sqlalchemy==1.8.2"
 ]
 
 [tool.uv.sources]
