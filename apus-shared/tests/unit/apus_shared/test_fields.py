@@ -6,12 +6,11 @@ from pydantic import ValidationError
 
 from apus_shared.fields import expand_dict, expand_list, expand_obj, generic, optional_fields, overridable, reference
 from apus_shared.models import BaseModel
-from unit.apus_shared.helpers import create_model, summarize_errors
 
 
-def test_generic(subtests):
-    cls = create_model(one=(str, ...))
-    root_cls = create_model(model=(generic(cls), ...))
+def test_generic(subtests, helpers):
+    cls = helpers.create_model(one=(str, ...))
+    root_cls = helpers.create_model(model=(generic(cls), ...))
 
     with subtests.test('create instance'):
         actual = root_cls(model={'one': 'two'})
@@ -21,15 +20,15 @@ def test_generic(subtests):
     with subtests.test('validation error: invalid string'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 2})
-        assert summarize_errors(e) == [('string_type', ('model', 'one'))]
+        assert helpers.simplified_errors(e) == [('string_type', ('model', 'one'))]
 
 
-def test_generic_subclass(subtests):
-    cls = create_model()
-    sub_a = create_model(cls, one=(Literal['a'], 'a'))
-    sub_b = create_model(cls, one=(Literal['b'], 'b'), two=(str, ...))
-    sub_c = create_model(cls, one=(Literal['c'], 'c'), two=(int, ...))
-    root_cls = create_model(model=(generic(cls), ...))
+def test_generic_subclass(subtests, helpers):
+    cls = helpers.create_model()
+    sub_a = helpers.create_model(cls, one=(Literal['a'], 'a'))
+    sub_b = helpers.create_model(cls, one=(Literal['b'], 'b'), two=(str, ...))
+    sub_c = helpers.create_model(cls, one=(Literal['c'], 'c'), two=(int, ...))
+    root_cls = helpers.create_model(model=(generic(cls), ...))
 
     with subtests.test('create sub_a instance'):
         actual = root_cls(model={'one': 'a'})
@@ -51,35 +50,35 @@ def test_generic_subclass(subtests):
     with subtests.test('validation error: no discriminator tag'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={})
-        assert summarize_errors(e) == [('union_tag_invalid', ('model',))]
+        assert helpers.simplified_errors(e) == [('union_tag_invalid', ('model',))]
 
     with subtests.test('validation error: unknown discriminator tag'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'd'})
-        assert summarize_errors(e) == [('union_tag_invalid', ('model',))]
+        assert helpers.simplified_errors(e) == [('union_tag_invalid', ('model',))]
 
     with subtests.test('validation error: extra fields forbidden'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'a', 'two': 2})
-        assert summarize_errors(e) == [('extra_forbidden', ('model', 'a', 'two'))]
+        assert helpers.simplified_errors(e) == [('extra_forbidden', ('model', 'a', 'two'))]
 
     with subtests.test('validation error: missing required field'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'b'})
-        assert summarize_errors(e) == [('missing', ('model', 'b', 'two'))]
+        assert helpers.simplified_errors(e) == [('missing', ('model', 'b', 'two'))]
 
     with subtests.test('validation error: invalid string'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'b', 'two': 2})
-        assert summarize_errors(e) == [('string_type', ('model', 'b', 'two'))]
+        assert helpers.simplified_errors(e) == [('string_type', ('model', 'b', 'two'))]
 
 
-def test_generic_subclass_inheritance(subtests):
-    cls = create_model(one=(Literal['none'], 'none'))
-    sub_a = create_model(cls, one=(Literal['a'], 'a'))
-    sub_b = create_model(cls, one=(Literal['b'], 'b'), two=(str, ...))
-    sub_b_sub_c = create_model(sub_b, one=(Literal['c'], 'c'), three=(int, ...))
-    root_cls = create_model(model=(generic(cls), ...))
+def test_generic_subclass_inheritance(subtests, helpers):
+    cls = helpers.create_model(one=(Literal['none'], 'none'))
+    sub_a = helpers.create_model(cls, one=(Literal['a'], 'a'))
+    sub_b = helpers.create_model(cls, one=(Literal['b'], 'b'), two=(str, ...))
+    sub_b_sub_c = helpers.create_model(sub_b, one=(Literal['c'], 'c'), three=(int, ...))
+    root_cls = helpers.create_model(model=(generic(cls), ...))
 
     with subtests.test('create instances'):
         actual = root_cls(model={'one': 'none'})
@@ -107,56 +106,56 @@ def test_generic_subclass_inheritance(subtests):
     with subtests.test("validation error: missing required field 'three'"):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'c', 'two': '123'})
-        assert summarize_errors(e) == [('missing', ('model', 'c', 'three'))]
+        assert helpers.simplified_errors(e) == [('missing', ('model', 'c', 'three'))]
 
     with subtests.test("validation error: missing required field 'two'"):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'c', 'three': 123})
-        assert summarize_errors(e) == [('missing', ('model', 'c', 'two'))]
+        assert helpers.simplified_errors(e) == [('missing', ('model', 'c', 'two'))]
 
 
-def test_generic_required_discriminator():
-    cls = create_model()
-    unused_sub_a = create_model(cls, one=(str, ...))
+def test_generic_required_discriminator(helpers):
+    cls = helpers.create_model()
+    unused_sub_a = helpers.create_model(cls, one=(str, ...))
 
     with pytest.raises(ValueError) as e:
-        create_model(model=(generic(cls), ...))
+        helpers.create_model(model=(generic(cls), ...))
     assert str(e.value) == 'at least one field with type typing.Literal is required'
 
 
-def test_generic_required_discriminator_in_all_subclasses():
-    cls = create_model()
-    unused_sub_a = create_model(cls, name='A', one=(Literal['a'], 'a'))
-    unused_sub_b = create_model(cls, name='B')
+def test_generic_required_discriminator_in_all_subclasses(helpers):
+    cls = helpers.create_model()
+    unused_sub_a = helpers.create_model(cls, name='A', one=(Literal['a'], 'a'))
+    unused_sub_b = helpers.create_model(cls, name='B')
 
     with pytest.raises(ValueError) as e:
-        create_model(model=(generic(cls), ...))
+        helpers.create_model(model=(generic(cls), ...))
     assert str(e.value) == 'B. discriminator field one is required'
 
 
-def test_generic_required_discriminator_type_as_literal():
-    cls = create_model()
-    unused_sub_a = create_model(cls, name='C', one=(Literal['a'], 'a'))
-    unused_sub_b = create_model(cls, name='D', one=(str, ...))
+def test_generic_required_discriminator_type_as_literal(helpers):
+    cls = helpers.create_model()
+    unused_sub_a = helpers.create_model(cls, name='C', one=(Literal['a'], 'a'))
+    unused_sub_b = helpers.create_model(cls, name='D', one=(str, ...))
 
     with pytest.raises(ValueError) as e:
-        create_model(model=(generic(cls), ...))
+        helpers.create_model(model=(generic(cls), ...))
     assert str(e.value) == 'D. discriminator field one must be of type typing.Literal'
 
 
-def test_generic_requires_discriminator_type_as_literal_in_superclass():
-    cls = create_model(name='E', one=(str, ...))
-    unused_sub_a = create_model(cls, one=(Literal['a'], 'a'))
-    unused_sub_b = create_model(cls, one=(Literal['b'], 'b'))
+def test_generic_requires_discriminator_type_as_literal_in_superclass(helpers):
+    cls = helpers.create_model(name='E', one=(str, ...))
+    unused_sub_a = helpers.create_model(cls, one=(Literal['a'], 'a'))
+    unused_sub_b = helpers.create_model(cls, one=(Literal['b'], 'b'))
 
     with pytest.raises(ValueError) as e:
-        create_model(model=(generic(cls), ...))
+        helpers.create_model(model=(generic(cls), ...))
     assert str(e.value) == 'E. discriminator field one must be of type typing.Literal'
 
 
-def test_reference(subtests):
-    cls = create_model(kind='Y', field1=(str, ...), field2=(str, ...))
-    root_cls = create_model(field3=(Annotated[reference(cls), expand_obj()], ...))
+def test_reference(subtests, helpers):
+    cls = helpers.create_model(kind='Y', field1=(str, ...), field2=(str, ...))
+    root_cls = helpers.create_model(field3=(Annotated[reference(cls), expand_obj()], ...))
     context = {'Y': {'refName': {'spec': {'field1': 'foo', 'field2': 'bar'}}}}
 
     with subtests.test('resolve reference'):
@@ -168,17 +167,17 @@ def test_reference(subtests):
     with subtests.test('validation error: reference not found'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': 'refName2'}, context=context)
-        assert summarize_errors(e) == [('reference.not_found', ('field3',))]
+        assert helpers.simplified_errors(e) == [('reference.not_found', ('field3',))]
 
     with subtests.test('validation error: override forbidden for field'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': {'refName': {'field1': 'baz'}}}, context=context)
-        assert summarize_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
+        assert helpers.simplified_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
 
 
-def test_reference_overridable(subtests):
-    cls = create_model(kind='Y', field1=(str, ...), field2=(Annotated[str, overridable], ...))
-    root_cls = create_model(field3=(Annotated[reference(cls), expand_obj()], ...))
+def test_reference_overridable(subtests, helpers):
+    cls = helpers.create_model(kind='Y', field1=(str, ...), field2=(Annotated[str, overridable], ...))
+    root_cls = helpers.create_model(field3=(Annotated[reference(cls), expand_obj()], ...))
     context = {'Y': {'refName': {'spec': {'field1': 'foo', 'field2': 'bar'}}}}
 
     with subtests.test('resolve reference'):
@@ -190,7 +189,7 @@ def test_reference_overridable(subtests):
     with subtests.test('validation error: reference not found'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': 'refName2'}, context=context)
-        assert summarize_errors(e) == [('reference.not_found', ('field3',))]
+        assert helpers.simplified_errors(e) == [('reference.not_found', ('field3',))]
 
     with subtests.test('override allowed field'):
         actual = root_cls.model_validate({'field3': {'refName': {'field2': 'baz'}}}, context=context)
@@ -201,11 +200,11 @@ def test_reference_overridable(subtests):
     with subtests.test('validation error: override forbidden for field'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': {'refName': {'field1': 'baz'}}}, context=context)
-        assert summarize_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
+        assert helpers.simplified_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
 
 
-def test_optional_fields(subtests):
-    cls = create_model(
+def test_optional_fields(subtests, helpers):
+    cls = helpers.create_model(
         field1=(str, ...),
         field2=(str, ...),
         field3=(str, ...),
@@ -213,7 +212,7 @@ def test_optional_fields(subtests):
         field5=(Annotated[str, overridable], ...),
         field6=(Annotated[str, overridable], ...),
     )
-    unused_sub_a = create_model(
+    unused_sub_a = helpers.create_model(
         cls,
         field1=(str, ...),
         field2=(int, ...),
@@ -248,12 +247,12 @@ def test_optional_fields(subtests):
     with subtests.test('validation error: not-overridable in subclass'):
         with pytest.raises(ValidationError) as e:
             root_cls(field4=456)
-        assert summarize_errors(e) == [('string_type', ('field4',))]
+        assert helpers.simplified_errors(e) == [('string_type', ('field4',))]
 
     with subtests.test('validation error: extra field forbidden'):
         with pytest.raises(ValidationError) as e:
             root_cls(field1='foo')
-        assert summarize_errors(e) == [('extra_forbidden', ('field1',))]
+        assert helpers.simplified_errors(e) == [('extra_forbidden', ('field1',))]
 
 
 def case(func, name=None, params=None, expected=None, errors=None):
