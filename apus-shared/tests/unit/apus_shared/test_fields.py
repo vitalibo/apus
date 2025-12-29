@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from apus_shared.fields import expand_dict, expand_list, expand_obj, generic, optional_fields, overridable, reference
 from apus_shared.models import BaseModel
-from unit.apus_shared.helpers import create_model, extract_errors
+from unit.apus_shared.helpers import create_model, summarize_errors
 
 
 def test_generic(subtests):
@@ -21,7 +21,7 @@ def test_generic(subtests):
     with subtests.test('validation error: invalid string'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 2})
-        assert extract_errors(e) == [('string_type', ('model', 'one'))]
+        assert summarize_errors(e) == [('string_type', ('model', 'one'))]
 
 
 def test_generic_subclass(subtests):
@@ -51,27 +51,27 @@ def test_generic_subclass(subtests):
     with subtests.test('validation error: no discriminator tag'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={})
-        assert extract_errors(e) == [('union_tag_invalid', ('model',))]
+        assert summarize_errors(e) == [('union_tag_invalid', ('model',))]
 
     with subtests.test('validation error: unknown discriminator tag'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'd'})
-        assert extract_errors(e) == [('union_tag_invalid', ('model',))]
+        assert summarize_errors(e) == [('union_tag_invalid', ('model',))]
 
     with subtests.test('validation error: extra fields forbidden'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'a', 'two': 2})
-        assert extract_errors(e) == [('extra_forbidden', ('model', 'a', 'two'))]
+        assert summarize_errors(e) == [('extra_forbidden', ('model', 'a', 'two'))]
 
     with subtests.test('validation error: missing required field'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'b'})
-        assert extract_errors(e) == [('missing', ('model', 'b', 'two'))]
+        assert summarize_errors(e) == [('missing', ('model', 'b', 'two'))]
 
     with subtests.test('validation error: invalid string'):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'b', 'two': 2})
-        assert extract_errors(e) == [('string_type', ('model', 'b', 'two'))]
+        assert summarize_errors(e) == [('string_type', ('model', 'b', 'two'))]
 
 
 def test_generic_subclass_inheritance(subtests):
@@ -107,12 +107,12 @@ def test_generic_subclass_inheritance(subtests):
     with subtests.test("validation error: missing required field 'three'"):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'c', 'two': '123'})
-        assert extract_errors(e) == [('missing', ('model', 'c', 'three'))]
+        assert summarize_errors(e) == [('missing', ('model', 'c', 'three'))]
 
     with subtests.test("validation error: missing required field 'two'"):
         with pytest.raises(ValidationError) as e:
             root_cls(model={'one': 'c', 'three': 123})
-        assert extract_errors(e) == [('missing', ('model', 'c', 'two'))]
+        assert summarize_errors(e) == [('missing', ('model', 'c', 'two'))]
 
 
 def test_generic_required_discriminator():
@@ -168,12 +168,12 @@ def test_reference(subtests):
     with subtests.test('validation error: reference not found'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': 'refName2'}, context=context)
-        assert extract_errors(e) == [('reference.not_found', ('field3',))]
+        assert summarize_errors(e) == [('reference.not_found', ('field3',))]
 
     with subtests.test('validation error: override forbidden for field'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': {'refName': {'field1': 'baz'}}}, context=context)
-        assert extract_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
+        assert summarize_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
 
 
 def test_reference_overridable(subtests):
@@ -190,7 +190,7 @@ def test_reference_overridable(subtests):
     with subtests.test('validation error: reference not found'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': 'refName2'}, context=context)
-        assert extract_errors(e) == [('reference.not_found', ('field3',))]
+        assert summarize_errors(e) == [('reference.not_found', ('field3',))]
 
     with subtests.test('override allowed field'):
         actual = root_cls.model_validate({'field3': {'refName': {'field2': 'baz'}}}, context=context)
@@ -201,7 +201,7 @@ def test_reference_overridable(subtests):
     with subtests.test('validation error: override forbidden for field'):
         with pytest.raises(ValidationError) as e:
             root_cls.model_validate({'field3': {'refName': {'field1': 'baz'}}}, context=context)
-        assert extract_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
+        assert summarize_errors(e) == [('extra_forbidden', ('field3', 'field1'))]
 
 
 def test_optional_fields(subtests):
@@ -248,12 +248,12 @@ def test_optional_fields(subtests):
     with subtests.test('validation error: not-overridable in subclass'):
         with pytest.raises(ValidationError) as e:
             root_cls(field4=456)
-        assert extract_errors(e) == [('string_type', ('field4',))]
+        assert summarize_errors(e) == [('string_type', ('field4',))]
 
     with subtests.test('validation error: extra field forbidden'):
         with pytest.raises(ValidationError) as e:
             root_cls(field1='foo')
-        assert extract_errors(e) == [('extra_forbidden', ('field1',))]
+        assert summarize_errors(e) == [('extra_forbidden', ('field1',))]
 
 
 def case(func, name=None, params=None, expected=None, errors=None):
@@ -564,9 +564,7 @@ def test_expanded(model, params, expected, errors):
         with pytest.raises(ValidationError) as e:
             model(field=params)
 
-        assert errors == [
-            {key: value for key, value in error.items() if key in {'type', 'loc', 'msg'}} for error in e.value.errors()
-        ]
+        assert e.value.errors(include_url=False, include_context=False, include_input=False) == errors
 
     if errors:
         return failure()

@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from apus_shared import models
 from apus_shared.models import BaseModel, Connection, Engine, create_resource
-from unit.apus_shared.helpers import create_model, extract_errors, resource_as_objs
+from unit.apus_shared.helpers import create_model, resource_as_objs, summarize_errors
 
 Resource = create_resource()
 
@@ -55,19 +55,19 @@ def test_create_resource():  # noqa: PLR0915
     assert actual.root.spec.type == 'sub_a'
     with pytest.raises(ValidationError) as e:
         resource(**create_json_resource(api_version='v2', kind='One', spec={'one': 'foo'}))
-    assert extract_errors(e) == [('int_parsing', ('One/v2', 'spec', 'one'))]
+    assert summarize_errors(e) == [('int_parsing', ('One/v2', 'spec', 'one'))]
     with pytest.raises(ValidationError) as e:
         resource(**create_json_resource(api_version='v3', kind='One', spec={'one': 123}))
-    assert extract_errors(e) == [('union_tag_invalid', ())]
+    assert summarize_errors(e) == [('union_tag_invalid', ())]
     with pytest.raises(ValidationError) as e:
         resource(**create_json_resource(api_version='v1', kind='Third', spec={'type': 'sub_b', 'value': 'qwer'}))
-    assert extract_errors(e) == [('int_parsing', ('Third/v1', 'spec', 'sub_b', 'value'))]
+    assert summarize_errors(e) == [('int_parsing', ('Third/v1', 'spec', 'sub_b', 'value'))]
     with pytest.raises(ValidationError) as e:
         resource(**create_json_resource(api_version='v1', kind='Third', spec={'type': 'sub_b'}))
-    assert extract_errors(e) == [('missing', ('Third/v1', 'spec', 'sub_b', 'value'))]
+    assert summarize_errors(e) == [('missing', ('Third/v1', 'spec', 'sub_b', 'value'))]
     with pytest.raises(ValidationError) as e:
         resource(**create_json_resource(api_version='v1', kind='Third', spec={'type': 'subclass_c', 'value': 'qwer'}))
-    assert extract_errors(e) == [('union_tag_invalid', ('Third/v1', 'spec'))]
+    assert summarize_errors(e) == [('union_tag_invalid', ('Third/v1', 'spec'))]
     assert cls_fifth is not None
 
 
@@ -123,6 +123,38 @@ def test_connection(subtests):
         assert resource.spec.database == 'DWH'
         assert resource.spec.warehouse == 'COMPUTE_WH'
         assert resource.spec.role == 'SYSADMIN'
+
+    with subtests.test('snowflake: validation errors'):
+        with pytest.raises(ValidationError) as e:
+            Resource(**objs[3])
+
+        assert e.value.errors(include_url=False, include_context=False, include_input=False) == [
+            {
+                'loc': ('spec', 'snowflake', 'password'),
+                'msg': 'Input should be None',
+                'type': 'none_required',
+            },
+            {
+                'loc': ('spec', 'snowflake', 'private_key'),
+                'msg': 'Field required',
+                'type': 'missing',
+            },
+        ]
+
+    with subtests.test('validation errors: unknown engine'):
+        with pytest.raises(ValidationError) as e:
+            Resource(**objs[4])
+
+        assert e.value.errors(include_url=False, include_context=False, include_input=False) == [
+            {
+                'loc': ('spec',),
+                'msg': (
+                    "Input tag 'bigquery' found using literal_discriminator() does not "
+                    "match any of the expected tags: 'mysql', 'postgresql', 'snowflake'"
+                ),
+                'type': 'union_tag_invalid',
+            }
+        ]
 
 
 def create_json_resource(api_version, kind, spec):

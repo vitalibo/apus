@@ -26,7 +26,7 @@ def create_model(base=BaseModel, api_version=None, kind=None, name=None, **kwarg
     return model_cls
 
 
-def extract_errors(e):
+def summarize_errors(e):
     """Extract error types and locations from a validation error."""
 
     return [(error['type'], error['loc']) for error in e.value.errors()]

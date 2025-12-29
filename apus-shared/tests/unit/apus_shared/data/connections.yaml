@@ -39,3 +39,27 @@ spec:
   database: DWH
   warehouse: COMPUTE_WH
   role: SYSADMIN
+
+---
+apiVersion: apus/v1
+kind: Connection
+metadata:
+  name: MyConnection4
+spec:
+  engine: snowflake
+  host: myaccount.snowflakecomputing.com
+  port: 5432
+  username: admin
+  password: 5ecr3t  # pragma: allowlist secret
+  database: DWH
+
+
+---
+apiVersion: apus/v1
+kind: Connection
+metadata:
+  name: MyConnection5
+spec:
+  engine: bigquery
+  project: my-gcp-project
+  dataset: my_dataset
