@@ -1,4 +1,5 @@
 from typing import Literal
+from unittest import mock
 
 import pytest
 from pydantic import ValidationError
@@ -70,7 +71,7 @@ def test_create_resource(helpers):  # noqa: PLR0915
     assert cls_fifth is not None
 
 
-def test_connection(subtests, helpers):
+def test_connection(subtests, helpers):  # noqa: PLR0915
     objs = helpers.resource_as_objs(__file__, 'data/connections.yaml')
 
     with subtests.test('mysql'):
@@ -91,6 +92,18 @@ def test_connection(subtests, helpers):
             'characterEncoding': 'UTF-8',
         }
 
+        with subtests.test('create mysql engine'), mock.patch('sqlalchemy.create_engine') as mock_create_engine:
+            mock_engine = mock.Mock()
+            mock_create_engine.return_value = mock_engine
+
+            actual = resource.spec.create_engine()
+
+            assert actual == mock_engine
+            mock_create_engine.assert_called_once_with(
+                'mysql+pymysql://root:5ecr3t@mysql.example.com:3306/mydb?'  # pragma: allowlist secret
+                'useUnicode=true&characterEncoding=UTF-8'
+            )
+
     with subtests.test('postgres'):
         resource = Resource(**objs[1]).root
 
@@ -106,6 +119,17 @@ def test_connection(subtests, helpers):
         assert resource.spec.database == 'postgres'
         assert resource.spec.properties == {}
 
+        with subtests.test('create postgres engine'), mock.patch('sqlalchemy.create_engine') as mock_create_engine:
+            mock_engine = mock.Mock()
+            mock_create_engine.return_value = mock_engine
+
+            actual = resource.spec.create_engine()
+
+            assert actual == mock_engine
+            mock_create_engine.assert_called_once_with(
+                'postgresql+psycopg2://admin:5ecr3t@postgres.example.com:5432/postgres'  # pragma: allowlist secret
+            )
+
     with subtests.test('snowflake'):
         resource = Resource(**objs[2]).root
 
@@ -114,14 +138,28 @@ def test_connection(subtests, helpers):
         assert resource.metadata.name == 'MyConnection3'
         assert isinstance(resource.spec, Connection)
         assert resource.spec.engine == Engine.SNOWFLAKE
+        assert resource.spec.account == 'myaccount'
         assert resource.spec.host == 'myaccount.snowflakecomputing.com'
         assert resource.spec.port == 443
         assert resource.spec.username == 'admin'
         assert resource.spec.password is None
         assert resource.spec.private_key == 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASC...'  # pragma: allowlist secret
         assert resource.spec.database == 'DWH'
+        assert resource.spec.schema == 'PUBLIC'
         assert resource.spec.warehouse == 'COMPUTE_WH'
         assert resource.spec.role == 'SYSADMIN'
+
+        with subtests.test('create snowflake engine'), mock.patch('sqlalchemy.create_engine') as mock_create_engine:
+            mock_engine = mock.Mock()
+            mock_create_engine.return_value = mock_engine
+
+            actual = resource.spec.create_engine()
+
+            assert actual == mock_engine
+            mock_create_engine.assert_called_once_with(
+                'snowflake://admin:@myaccount.snowflakecomputing.com:443/DWH/PUBLIC?account=myaccount&role=SYSADMIN&warehouse=COMPUTE_WH',
+                connect_args={'private_key': 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASC...'},  # pragma: allowlist secret
+            )
 
     with subtests.test('snowflake: validation errors'):
         with pytest.raises(ValidationError) as e:
@@ -133,6 +171,7 @@ def test_connection(subtests, helpers):
                 'msg': 'Input should be None',
                 'type': 'none_required',
             },
+            {'loc': ('spec', 'snowflake', 'account'), 'msg': 'Field required', 'type': 'missing'},
             {
                 'loc': ('spec', 'snowflake', 'private_key'),
                 'msg': 'Field required',

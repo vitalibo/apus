@@ -33,10 +33,12 @@ metadata:
   name: MyConnection3
 spec:
   engine: snowflake
+  account: myaccount
   host: myaccount.snowflakecomputing.com
   username: admin
   private_key: MIIEvQIBADANBgkqhkiG9w0BAQEFAASC... # pragma: allowlist secret
   database: DWH
+  schema: PUBLIC
   warehouse: COMPUTE_WH
   role: SYSADMIN
 

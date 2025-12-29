@@ -161,6 +161,8 @@ class SnowflakeConnection(Connection):
     """Connection to a Snowflake database."""
 
     engine: Literal[Engine.SNOWFLAKE]
+    account: str
+    host: Optional[str] = None
     port: int = 443
     password: None = None  # deprecated single-factor password sign-in
     private_key: str
@@ -173,11 +175,13 @@ class SnowflakeConnection(Connection):
         from snowflake.sqlalchemy import URL  # noqa: PLC0415
 
         params = {
-            'host': kwargs.get('host', self.host),
+            'account': kwargs.get('account', self.account),
             'port': kwargs.get('port', self.port),
             'user': kwargs.get('username', self.username),
         }
 
+        if 'host' in kwargs or self.host:
+            params['host'] = kwargs.get('host', self.host)
         if 'database' in kwargs or self.database:
             params['database'] = kwargs.get('database', self.database)
         if 'schema' in kwargs or self.schema:
