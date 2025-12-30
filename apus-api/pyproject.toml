@@ -4,8 +4,12 @@ version = "0.1.0"
 description = "API Gateway for APUS"
 requires-python = "==3.9.*"
 dependencies = [
-    "apus-shared"
+    "apus_shared"
 ]
 
 [tool.uv.sources]
-apus-shared = { workspace = true }
+apus_shared = { workspace = true }
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"

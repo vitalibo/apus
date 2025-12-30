@@ -1,0 +1,21 @@
+path: '/my/path/{id}'
+httpMethod: POST
+pathParameters:
+  - name: id
+    type: integer
+queryParameters:
+  - name: fields
+    type: string
+  - name: expand
+    type: boolean
+body:
+  type: object
+  properties:
+    street_name:
+      type: string
+    street_type:
+      type: string
+      enum:
+        - Street
+        - Avenue
+        - Boulevard

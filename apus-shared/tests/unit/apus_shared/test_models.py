@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from apus_shared import models
 from apus_shared.models import BaseModel, Connection, Engine, create_resource
+from apus_shared.resources import resource_as_objs
 
 Resource = create_resource()
 
@@ -71,8 +72,8 @@ def test_create_resource(helpers):  # noqa: PLR0915
     assert cls_fifth is not None
 
 
-def test_connection(subtests, helpers):  # noqa: PLR0915
-    objs = helpers.resource_as_objs(__file__, 'data/connections.yaml')
+def test_connection(subtests):  # noqa: PLR0915
+    objs = resource_as_objs(__file__, 'data/connections.yaml')
 
     with subtests.test('mysql'):
         resource = Resource(**objs[0]).root

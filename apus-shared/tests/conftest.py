@@ -1,12 +1,8 @@
-import json
 import random
 import string
-from pathlib import Path
 
 import pydantic
 import pytest
-import yaml
-from pyxis.functions import require_not_none
 
 from apus_shared.models import BaseModel
 
@@ -18,26 +14,6 @@ def helpers():
 
 class Helpers:
     """Helper class for testing."""
-
-    @staticmethod
-    def resource(root: str, path: str) -> Path:
-        return Path.joinpath(Path(require_not_none(root, 'root')).parent, require_not_none(path, 'path'))
-
-    @staticmethod
-    def resource_as_str(root: str, path: str, encoding: str = 'utf-8', **kwargs) -> str:
-        return Helpers.resource(root, path).read_text(encoding)
-
-    @staticmethod
-    def resource_as_obj(root: str, path: str, **kwargs):
-        return yaml.safe_load(Helpers.resource_as_str(root, path, **kwargs))
-
-    @staticmethod
-    def resource_as_objs(root: str, path: str, **kwargs):
-        return list(yaml.safe_load_all(Helpers.resource_as_str(root, path, **kwargs)))
-
-    @staticmethod
-    def resource_as_json(root: str, path: str, **kwargs):
-        return json.loads(Helpers.resource_as_str(root, path), **kwargs)
 
     @staticmethod
     def simplified_errors(e):
