@@ -1,5 +1,6 @@
-from apus_api.models import PathParameter, QueryParameter, Request
 from apus_shared.resources import resource_as_objs
+
+from apus_api.models import PathParameter, QueryParameter, Request
 
 
 def test_request(subtests):

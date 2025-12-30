@@ -162,14 +162,14 @@ class SnowflakeConnection(Connection):
 
     engine: Literal[Engine.SNOWFLAKE]
     account: str
-    host: Optional[str] = None
-    port: int = 443
+    host: Annotated[Optional[str], Field(default=None)]
+    port: Annotated[int, Field(default=443, ge=0, le=65535)]
     password: None = None  # deprecated single-factor password sign-in
     private_key: str
-    database: Optional[str] = None
-    schema: Optional[str] = None
-    warehouse: Optional[str] = None
-    role: Optional[str] = None
+    database: Annotated[Optional[str], Field(default=None)]
+    schema: Annotated[Optional[str], Field(default=None)]
+    warehouse: Annotated[Optional[str], Field(default=None)]
+    role: Annotated[Optional[str], Field(default=None)]
 
     def create_engine(self, **kwargs) -> sqlalchemy.Engine:
         from snowflake.sqlalchemy import URL  # noqa: PLC0415
