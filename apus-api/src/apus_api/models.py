@@ -1,9 +1,11 @@
+from enum import Enum
 from functools import reduce
 from typing import Annotated, Any, Literal, Optional, Union
 
 from apus_shared.fields import expand_dict, expand_obj, reference  # noqa: TC002
 from apus_shared.models import BaseModel, Connection, create_resource
 from pydantic import Field
+from pyxis.enum import EnumMixin
 
 Primitive = Union[str, int, float, bool]
 
@@ -11,7 +13,9 @@ Primitive = Union[str, int, float, bool]
 class Parameter(BaseModel):
     """An abstract class to represent a parameter."""
 
-    name: Annotated[str, Field(..., min_length=1, max_length=64, pattern='^[A-Za-z][A-Za-z0-9_-]+$')]
+    name: Annotated[
+        str, Field(..., min_length=1, max_length=64, pattern='^[A-Za-z][A-Za-z0-9_-]+$', serialization_alias='alias')
+    ]
     description: Annotated[Optional[str], Field(default=None, min_length=1, max_length=256)]
 
 
@@ -27,6 +31,14 @@ class QueryParameter(Parameter):
     deprecated: Annotated[bool, Field(default=False)]
 
 
+class StringFormat(str, EnumMixin, Enum):
+    """String format mixin."""
+
+    DATE = 'date'
+    DATE_TIME = 'date-time'
+    UUID = 'uuid'
+
+
 class StringMixin(BaseModel):
     """String validation mixin."""
 
@@ -34,16 +46,21 @@ class StringMixin(BaseModel):
     min_length: Annotated[Optional[int], Field(default=None, ge=0, alias='minLength')]
     max_length: Annotated[Optional[int], Field(default=None, ge=0, alias='maxLength')]
     pattern: Annotated[Optional[str], Field(default=None, min_length=1, max_length=256)]
+    format: Annotated[Optional[StringFormat], Field(default=None)]
 
 
 class NumberMixin(BaseModel):
     """Number validation mixin."""
 
     type: Annotated[Literal['number', 'integer'], Field('number')]
-    minimum: Annotated[Optional[float], Field(default=None)]
-    maximum: Annotated[Optional[float], Field(default=None)]
-    exclusive_minimum: Annotated[Optional[bool], Field(default=None, alias='exclusiveMinimum')]
-    exclusive_maximum: Annotated[Optional[bool], Field(default=None, alias='exclusiveMaximum')]
+    minimum: Annotated[Optional[float], Field(default=None, serialization_alias='ge')]
+    maximum: Annotated[Optional[float], Field(default=None, serialization_alias='le')]
+    exclusive_minimum: Annotated[
+        Optional[bool], Field(default=None, alias='exclusiveMinimum', serialization_alias='gt')
+    ]
+    exclusive_maximum: Annotated[
+        Optional[bool], Field(default=None, alias='exclusiveMaximum', serialization_alias='lt')
+    ]
     multiple_of: Annotated[Optional[float], Field(default=None, alias='multipleOf')]
 
 

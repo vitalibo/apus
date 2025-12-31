@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from collections import defaultdict
 from typing import TYPE_CHECKING, Annotated, Any
 
 import forge
@@ -10,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.orm.session import Session
 
 from apus_api import deps
-from apus_api.utils import create_model, path_arg, query_arg
+from apus_api.utils import create_model, path_arg, query_arg, unpack_params
 
 if TYPE_CHECKING:
     from apus_shared.models import Resource
@@ -32,39 +31,26 @@ class DataGatewayRouter(APIRouter):
             summary=resource.metadata.labels.get('summary', resource.metadata.name),
             description=resource.metadata.labels.get('description'),
             tags={k[4:]: v for k, v in resource.metadata.annotations.items() if k.startswith('tags/')},
-        )(forge.sign(*self._signature(resource.spec))(self._unpack_params(self.handle)))
+        )(forge.sign(*self._signature(resource.spec))(unpack_params(self.handle)))
 
     def handle(self, session: Session, params: dict[str, Any]):
         logging.info('params: %s', params)
+
         with session.connection() as conn:
             result = conn.execute(text(self.resource.spec.query_template))
-        return result.fetchall()
+
+        rows = result.fetchall()
+        return [dict(row._mapping) for row in rows]  # noqa: SLF001
 
     @staticmethod
     def _signature(spec: DataGateway):
-        params = [forge.arg('session', type=Annotated[Session, Depends(deps.get_session(spec.connection))])]
-
-        params.extend(path_arg(v) for v in spec.request.path_parameters.values())
-        params.extend(
-            query_arg(v) for v in sorted(spec.request.query_parameters.values(), key=lambda v: not v.required)
-        )
+        params = [
+            forge.arg('session', type=Annotated[Session, Depends(deps.get_session(spec.connection))]),
+            *[path_arg(x) for x in spec.request.path_parameters.values()],
+            *[query_arg(x) for x in sorted(spec.request.query_parameters.values(), key=lambda x: not x.required)],
+        ]
 
         if spec.request.body is not None:
             params.append(forge.arg('body', type=create_model(spec.request.body)))
 
         return params
-
-    @staticmethod
-    def _unpack_params(func):
-        def wrapper(session: Session, **kwargs):
-            params = defaultdict(dict)
-            for key, values in kwargs.items():
-                group, *path = key.split('_', 1)
-                if path:
-                    params[group][path[0]] = values
-                else:
-                    params[group] = values
-
-            return func(session=session, params=params)
-
-        return wrapper

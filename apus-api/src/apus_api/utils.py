@@ -1,4 +1,7 @@
 import json
+import uuid
+from collections import defaultdict
+from datetime import date, datetime
 from functools import partial
 from typing import Annotated
 
@@ -27,10 +30,11 @@ def create_model(json_schema: dict) -> type:
         data_model_field_type=data_model_types.field_model,
         data_type_manager_type=data_model_types.data_type_manager,
         dump_resolve_reference_action=data_model_types.dump_resolve_reference_action,
+        validation=True,
     )
 
     namespace = {}
-    exec(parser.parse(), namespace)  # pylint: disable=exec-used
+    exec(parser.parse() + '\n\nModel.model_rebuild()', namespace)  # noqa: S102
     return namespace['Model']
 
 
@@ -42,14 +46,44 @@ def __arg(cls, obj):
     :param obj: Parameter object.
     """
 
+    dtype = {
+        ('string', None): str,
+        ('integer', None): int,
+        ('number', None): float,
+        ('boolean', None): bool,
+        ('string', 'date'): date,
+        ('string', 'date-time'): datetime,
+        ('string', 'uuid'): uuid.UUID,
+    }[
+        obj.type,
+        obj.format if hasattr(obj, 'format') else None,
+    ]
+
     return forge.arg(
         f'{cls.__name__.lower()}Parameters_{obj.name}',
         type=Annotated[
-            {'string': str, 'integer': int, 'number': float, 'boolean': bool}[obj.type],
+            dtype,
             cls(**obj.model_dump(by_alias=True, exclude_none=True, exclude={'type', 'default'})),
         ],
         **obj.model_dump(exclude_none=True, include={'default'}),
     )
+
+
+def unpack_params(func):
+    """Unpack parameters from FastAPI into a nested dictionary."""
+
+    def wrap(session, **kwargs):
+        params = defaultdict(dict)
+        for key, value in kwargs.items():
+            group, *path = key.split('_', 1)
+            if path:
+                params[group][path[0]] = value
+            else:
+                params[group] = value
+
+        return func(session=session, params=dict(params))
+
+    return wrap
 
 
 query_arg = partial(__arg, Query)
