@@ -167,7 +167,7 @@ class SnowflakeConnection(Connection):
     password: None = None  # deprecated single-factor password sign-in
     private_key: str
     database: Annotated[Optional[str], Field(default=None)]
-    schema: Annotated[Optional[str], Field(default=None)]
+    schema_name: Annotated[Optional[str], Field(default=None, alias='schema')]
     warehouse: Annotated[Optional[str], Field(default=None)]
     role: Annotated[Optional[str], Field(default=None)]
 
@@ -184,8 +184,8 @@ class SnowflakeConnection(Connection):
             params['host'] = kwargs.get('host', self.host)
         if 'database' in kwargs or self.database:
             params['database'] = kwargs.get('database', self.database)
-        if 'schema' in kwargs or self.schema:
-            params['schema'] = kwargs.get('schema', self.schema)
+        if 'schema' in kwargs or self.schema_name:
+            params['schema'] = kwargs.get('schema', self.schema_name)
         if 'warehouse' in kwargs or self.warehouse:
             params['warehouse'] = kwargs.get('warehouse', self.warehouse)
         if 'role' in kwargs or self.role:

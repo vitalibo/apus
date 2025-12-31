@@ -146,7 +146,7 @@ def test_connection(subtests):  # noqa: PLR0915
         assert resource.spec.password is None
         assert resource.spec.private_key == 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASC...'  # pragma: allowlist secret
         assert resource.spec.database == 'DWH'
-        assert resource.spec.schema == 'PUBLIC'
+        assert resource.spec.schema_name == 'PUBLIC'
         assert resource.spec.warehouse == 'COMPUTE_WH'
         assert resource.spec.role == 'SYSADMIN'
 
