@@ -1,8 +1,8 @@
 from functools import reduce
 from typing import Annotated, Any, Literal, Optional, Union
 
-from apus_shared.fields import expand_dict
-from apus_shared.models import BaseModel
+from apus_shared.fields import expand_dict, expand_obj, reference  # noqa: TC002
+from apus_shared.models import BaseModel, Connection, create_resource
 from pydantic import Field
 
 Primitive = Union[str, int, float, bool]
@@ -83,3 +83,17 @@ class Request(BaseModel):
         mixin(QueryParameter), expand_dict('name'), Field(min_length=0, max_length=16, alias='queryParameters')
     ]
     body: Annotated[Optional[dict[str, Any]], Field(default=None)]
+
+
+class DataGateway(BaseModel):
+    """A Data Gateway resource specification."""
+
+    __api_version__ = 'apus/v1'
+    __kind__ = 'DataGateway'
+
+    request: Annotated[Request, ...]
+    connection: Annotated[reference(Connection), expand_obj()]
+    query_template: Annotated[str, ...]
+
+
+Resource = create_resource()
