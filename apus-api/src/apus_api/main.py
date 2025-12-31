@@ -11,7 +11,12 @@ logging.basicConfig(
     stream=sys.stdout,
 )
 
-app = FastAPI(title='APUS RESTful API', swagger_ui_parameters={'defaultModelsExpandDepth': -1})
+app = FastAPI(
+    title='APUS RESTful API',
+    swagger_ui_parameters={
+        'defaultModelsExpandDepth': -1,
+    },
+)
 
 if __name__ == '__main__':
     uvicorn.run(app='apus_api.main:app', host='127.0.0.1', port=8000)
