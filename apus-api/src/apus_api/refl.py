@@ -11,14 +11,16 @@ from datamodel_code_generator.model import get_data_model_types
 from datamodel_code_generator.parser.jsonschema import JsonSchemaParser
 from fastapi import Path, Query
 
+__all__ = [
+    'create_model',
+    'path_arg',
+    'query_arg',
+    'unpack_params',
+]
+
 
 def create_model(json_schema: dict) -> type:
-    """
-    Create a Pydantic model from a JSON schema.
-
-    :param json_schema: JSON schema to create the model from.
-    :return: Pydantic V2 model.
-    """
+    """Create a Pydantic model from a JSON schema."""
 
     data_model_types = get_data_model_types(
         DataModelType.PydanticV2BaseModel, target_python_version=PythonVersion.PY_39
@@ -38,13 +40,8 @@ def create_model(json_schema: dict) -> type:
     return namespace['Model']
 
 
-def __arg(cls, obj):
-    """
-    Create a FastAPI argument from a parameter object.
-
-    :param cls: FastAPI parameter class.
-    :param obj: Parameter object.
-    """
+def _create_arg(cls, obj):
+    """Create a FastAPI argument from a parameter object."""
 
     dtype = {
         ('string', None): str,
@@ -72,7 +69,7 @@ def __arg(cls, obj):
 def unpack_params(func):
     """Unpack parameters from FastAPI into a nested dictionary."""
 
-    def wrap(session, **kwargs):
+    def wrap(session, _, **kwargs):
         params = defaultdict(dict)
         for key, value in kwargs.items():
             group, *path = key.split('_', 1)
@@ -86,5 +83,5 @@ def unpack_params(func):
     return wrap
 
 
-query_arg = partial(__arg, Query)
-path_arg = partial(__arg, Path)
+query_arg = partial(_create_arg, Query)
+path_arg = partial(_create_arg, Path)

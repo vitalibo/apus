@@ -1,0 +1,97 @@
+apiVersion: apus/v1
+kind: DataGateway
+metadata:
+  name: TestDataGateway
+spec:
+  connection:
+    engine: snowflake
+    account: 'my_account'
+    username: test
+    private_key: '123'
+  request:
+    path: '/users/{user_id}/orders/{order_id}'
+    httpMethod: POST
+    pathParameters:
+      - name: user_id
+        type: integer
+        minimum: 1
+        maximum: 100000
+      - name: order_id
+        type: string
+        pattern: '^[a-fA-F0-9-]+$'
+    queryParameters:
+      - name: report_date
+        type: string
+        format: date
+      - name: include_details
+        type: boolean
+        required: false
+      - name: page_size
+        type: integer
+        minimum: 25
+        maximum: 250
+        multipleOf: 25
+      - name: sort_order
+        type: string
+        pattern: '^(asc|desc)$'
+        default: asc
+      - name: discount
+        type: number
+        exclusiveMinimum: 0.0
+        exclusiveMaximum: 1.0
+        required: false
+    body:
+      type: object
+      required:
+        - username
+        - age
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+          pattern: '^[a-zA-Z0-9_]+$'
+        age:
+          type: integer
+          minimum: 18
+          maximum: 100
+        role:
+          type: string
+          default: "user"
+          enum:
+            - admin
+            - user
+            - guest
+        tags:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+        preferences:
+          type: object
+          properties:
+            newsletter:
+              type: boolean
+            theme:
+              type: object
+              properties:
+                color:
+                  type: string
+                  enum:
+                    - light
+                    - dark
+                font_size:
+                  type: integer
+                  minimum: 10
+                  maximum: 24
+                  default: 14
+            notifications:
+              type: string
+              enum:
+                - email
+                - sms
+                - push
+  query_template:
+    SELECT *
+    FROM addresses
+    LIMIT 10;

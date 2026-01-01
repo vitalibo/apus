@@ -1,0 +1,26 @@
+{
+  "method": "POST",
+  "url": "/users/12345/orders/84f4b963-5bc4-4db4-a13c-6c3aebab761b",
+  "params": {
+    "report_date": "2026-01-23",
+    "include_details": false,
+    "page_size": 50,
+    "discount": 0.16
+  },
+  "json": {
+    "username": "test_user",
+    "age": 32,
+    "role": "admin",
+    "tags": [
+      "beta_tester",
+      "premium_member"
+    ],
+    "preferences": {
+      "newsletter": true,
+      "theme": {
+        "color": "dark"
+      },
+      "notifications": "email"
+    }
+  }
+}

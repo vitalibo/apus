@@ -1,0 +1,70 @@
+{
+  "status": 400,
+  "message": "Bad Request",
+  "errors": {
+    "body.age": {
+      "details": [
+        {
+          "type": "greater_than_equal",
+          "msg": "Input should be greater than or equal to 18"
+        }
+      ],
+      "original": 15
+    },
+    "body.tags": {
+      "details": [
+        {
+          "msg": "Input should be a valid list",
+          "type": "list_type"
+        }
+      ],
+      "original": "foo,bar,baz"
+    },
+    "path.order_id": {
+      "details": [
+        {
+          "type": "string_pattern_mismatch",
+          "msg": "String should match pattern '^[a-fA-F0-9-]+$'"
+        }
+      ],
+      "original": "bar"
+    },
+    "path.user_id": {
+      "details": [
+        {
+          "type": "int_parsing",
+          "msg": "Input should be a valid integer, unable to parse string as an integer"
+        }
+      ],
+      "original": "foo"
+    },
+    "query.discount": {
+      "details": [
+        {
+          "type": "float_parsing",
+          "msg": "Input should be a valid number, unable to parse string as a number"
+        }
+      ],
+      "original": "ten_percent"
+    },
+    "query.include_details": {
+      "details": [
+        {
+          "type": "bool_parsing",
+          "msg": "Input should be a valid boolean, unable to interpret input"
+        }
+      ],
+      "original": "not_a_boolean"
+    },
+    "query.report_date": {
+      "details": [
+        {
+          "type": "date_from_datetime_parsing",
+          "msg": "Input should be a valid date or datetime, invalid character in year"
+        }
+      ],
+      "original": "02 Jan 2026"
+    }
+  },
+  "requestId": "123e4567-e89b-12d3-a456-426614174000"
+}

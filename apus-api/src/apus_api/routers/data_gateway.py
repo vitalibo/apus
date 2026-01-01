@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.orm.session import Session
 
 from apus_api import deps, schemas
-from apus_api.utils import create_model, path_arg, query_arg, unpack_params
+from apus_api.refl import create_model, path_arg, query_arg, unpack_params
 
 if TYPE_CHECKING:
     from apus_shared.models import Resource
@@ -47,6 +47,7 @@ class DataGatewayRouter(APIRouter):
     def _signature(spec: DataGateway):
         params = [
             forge.arg('session', type=Annotated[Session, Depends(deps.get_session(spec.connection))]),
+            forge.arg('_', type=Annotated[Session, Depends(deps.strict_query_params)]),
             *[path_arg(x) for x in spec.request.path_parameters.values()],
             *[query_arg(x) for x in spec.request.query_parameters.values() if x.default is None],
         ]
