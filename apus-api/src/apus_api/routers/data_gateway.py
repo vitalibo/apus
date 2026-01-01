@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm.session import Session
 
-from apus_api import deps
+from apus_api import deps, schemas
 from apus_api.utils import create_model, path_arg, query_arg, unpack_params
 
 if TYPE_CHECKING:
@@ -31,6 +31,7 @@ class DataGatewayRouter(APIRouter):
             summary=resource.metadata.labels.get('summary', resource.metadata.name),
             description=resource.metadata.labels.get('description'),
             tags={k[4:]: v for k, v in resource.metadata.annotations.items() if k.startswith('tags/')},
+            responses={'400': {'model': schemas.ErrorResponse, 'description': 'Validation Error'}},
         )(forge.sign(*self._signature(resource.spec))(unpack_params(self.handle)))
 
     def handle(self, session: Session, params: dict[str, Any]):
