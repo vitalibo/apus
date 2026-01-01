@@ -48,10 +48,13 @@ class DataGatewayRouter(APIRouter):
         params = [
             forge.arg('session', type=Annotated[Session, Depends(deps.get_session(spec.connection))]),
             *[path_arg(x) for x in spec.request.path_parameters.values()],
-            *[query_arg(x) for x in sorted(spec.request.query_parameters.values(), key=lambda x: not x.required)],
+            *[query_arg(x) for x in spec.request.query_parameters.values() if x.default is None],
         ]
 
         if spec.request.body is not None:
             params.append(forge.arg('body', type=create_model(spec.request.body)))
 
-        return params
+        return [
+            *params,
+            *[query_arg(x) for x in spec.request.query_parameters.values() if x.default is not None],
+        ]
