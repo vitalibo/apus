@@ -7,7 +7,7 @@ format *args:
     uv run ruff format {{ args }} ./src/ ./tests/
 
 # run code style checks
-style *args:
+check *args:
     uv run ruff check --config ../ruff.toml {{ args }} ./src/ ./tests/
 
 # run unit tests

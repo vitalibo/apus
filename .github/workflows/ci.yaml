@@ -29,12 +29,12 @@ jobs:
 
       - name: 'Install dependencies'
         run: |
-          just install
+          just sync
 
       - name: 'Run code style checks'
         run: |
           just format --check --diff
-          just style --output-format full
+          just check --output-format full
 
       - name: 'Run tests'
         run: |

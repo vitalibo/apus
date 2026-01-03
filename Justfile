@@ -8,7 +8,7 @@ default:
     @just --list
 
 # install dependencies
-install:
+sync:
     uv sync --locked --all-packages --all-extras --dev
 
 # run code formatter
@@ -17,9 +17,9 @@ format *args:
     just apus-api::format {{ args }}
 
 # run code style checks
-style *args:
-    just apus-shared::style {{ args }}
-    just apus-api::style {{ args }}
+check *args:
+    just apus-shared::check {{ args }}
+    just apus-api::check {{ args }}
     uv run pre-commit run --files $(git diff --name-only)
 
 # run unit tests
