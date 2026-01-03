@@ -1,6 +1,5 @@
 import json
 import uuid
-from collections import defaultdict
 from datetime import date, datetime
 from functools import partial
 from typing import Annotated, Any
@@ -18,7 +17,6 @@ __all__ = [
     'create_response_model',
     'path_arg',
     'query_arg',
-    'unpack_params',
 ]
 
 
@@ -67,23 +65,6 @@ def _create_arg(cls, obj):
         ],
         **obj.model_dump(exclude_none=True, include={'default'}),
     )
-
-
-def unpack_params(func):
-    """Unpack parameters from FastAPI into a nested dictionary."""
-
-    def wrap(session, _, **kwargs):
-        params = defaultdict(dict)
-        for key, value in kwargs.items():
-            group, *path = key.split('_', 1)
-            if path:
-                params[group][path[0]] = value
-            else:
-                params[group] = value
-
-        return func(session=session, params=dict(params))
-
-    return wrap
 
 
 query_arg = partial(_create_arg, Query)

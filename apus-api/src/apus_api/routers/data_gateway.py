@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import TYPE_CHECKING, Annotated
 
 import forge
 from fastapi import APIRouter, Depends
+from jinja2 import Template
 from sqlalchemy import text
 from sqlalchemy.orm.session import Session
 
 from apus_api import deps, schemas
-from apus_api.refl import create_model, create_response_model, path_arg, query_arg, unpack_params
+from apus_api.refl import create_model, create_response_model, path_arg, query_arg
 
 if TYPE_CHECKING:
     from apus_shared.models import Resource
@@ -22,7 +22,7 @@ class DataGatewayRouter(APIRouter):
 
     def __init__(self, resource: Resource[DataGateway]) -> None:
         super().__init__()
-        self.resource = resource
+        self.query_template = Template(resource.spec.query_template)
         self.response_model = create_response_model(resource.spec.response)
         {
             'GET': self.get,
@@ -35,13 +35,13 @@ class DataGatewayRouter(APIRouter):
             response_model=self.response_model,
             tags={k[4:]: v for k, v in resource.metadata.annotations.items() if k.startswith('tags/')},
             responses={'400': {'model': schemas.ErrorResponse, 'description': 'Validation Error'}},
-        )(forge.sign(*self._signature(resource.spec))(unpack_params(self.handle)))
+        )(forge.sign(*self._signature(resource.spec))(self.handle))
 
-    def handle(self, session: Session, params: dict[str, Any]):
-        logging.info('params: %s', params)
+    def handle(self, session: Session, **kwargs):
+        query = self.query_template.render(**kwargs)
 
         with session.connection() as conn:
-            result = conn.execute(text(self.resource.spec.query_template))
+            result = conn.execute(text(query), kwargs)
 
         rows = result.fetchall()
         return self.response_model.from_rows(
