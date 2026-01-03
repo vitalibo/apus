@@ -3,9 +3,11 @@ import uuid
 from collections import defaultdict
 from datetime import date, datetime
 from functools import partial
-from typing import Annotated
+from typing import Annotated, Any
 
 import forge
+import pydantic
+from apus_shared.models import BaseModel
 from datamodel_code_generator import DataModelType, PythonVersion
 from datamodel_code_generator.model import get_data_model_types
 from datamodel_code_generator.parser.jsonschema import JsonSchemaParser
@@ -13,6 +15,7 @@ from fastapi import Path, Query
 
 __all__ = [
     'create_model',
+    'create_response_model',
     'path_arg',
     'query_arg',
     'unpack_params',
@@ -85,3 +88,42 @@ def unpack_params(func):
 
 query_arg = partial(_create_arg, Query)
 path_arg = partial(_create_arg, Path)
+
+
+def _response_model_translator(response):
+    """Create a method to translate database rows into the response model."""
+
+    def transform(rows):
+        if response.content_schema is not None:
+            rows = [transform_row(response.content_schema, item) for item in rows]
+        first_row = rows[0] if rows else {}
+
+        return {response.envelope.property: (first_row if response.envelope.type == 'object' else rows)}
+
+    def transform_row(schema, row, name=None):
+        if schema['type'] == 'object':
+            return {pname: transform_row(props, row, pname) for pname, props in schema['properties'].items()}
+        if schema['type'] == 'array':
+            raise NotImplementedError
+        return row[schema.get('path', name)]
+
+    return classmethod(lambda cls, rows: cls(**transform(rows)))
+
+
+def create_response_model(response):
+    """Create a Pydantic response model based on the response specification."""
+
+    model = dict[str, Any]
+    if response.content_schema is not None:
+        model = create_model(response.content_schema)
+    if response.envelope.type == 'array':
+        model = list[model]
+
+    response_model = pydantic.create_model(
+        'Response',
+        __base__=BaseModel,
+        **{response.envelope.property: (model, ...)},
+    )
+
+    response_model.from_rows = _response_model_translator(response)
+    return response_model

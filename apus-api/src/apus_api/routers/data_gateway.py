@@ -9,7 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.orm.session import Session
 
 from apus_api import deps, schemas
-from apus_api.refl import create_model, path_arg, query_arg, unpack_params
+from apus_api.refl import create_model, create_response_model, path_arg, query_arg, unpack_params
 
 if TYPE_CHECKING:
     from apus_shared.models import Resource
@@ -23,6 +23,7 @@ class DataGatewayRouter(APIRouter):
     def __init__(self, resource: Resource[DataGateway]) -> None:
         super().__init__()
         self.resource = resource
+        self.response_model = create_response_model(resource.spec.response)
         {
             'GET': self.get,
             'POST': self.post,
@@ -30,6 +31,8 @@ class DataGatewayRouter(APIRouter):
             path=resource.spec.request.path,
             summary=resource.metadata.labels.get('summary', resource.metadata.name),
             description=resource.metadata.labels.get('description'),
+            status_code=resource.spec.response.status_code,
+            response_model=self.response_model,
             tags={k[4:]: v for k, v in resource.metadata.annotations.items() if k.startswith('tags/')},
             responses={'400': {'model': schemas.ErrorResponse, 'description': 'Validation Error'}},
         )(forge.sign(*self._signature(resource.spec))(unpack_params(self.handle)))
@@ -41,7 +44,9 @@ class DataGatewayRouter(APIRouter):
             result = conn.execute(text(self.resource.spec.query_template))
 
         rows = result.fetchall()
-        return [dict(row._mapping) for row in rows]  # noqa: SLF001
+        return self.response_model.from_rows(
+            [dict(row._mapping) for row in rows],  # noqa: SLF001
+        )
 
     @staticmethod
     def _signature(spec: DataGateway):

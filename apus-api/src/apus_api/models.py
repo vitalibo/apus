@@ -102,6 +102,21 @@ class Request(BaseModel):
     body: Annotated[Optional[dict[str, Any]], Field(default=None)]
 
 
+class Envelope(BaseModel):
+    """An envelope definition for wrapping response data."""
+
+    type: Annotated[Literal['object', 'array'], Field(default='array')]
+    property: Annotated[str, Field('data')]
+
+
+class Response(BaseModel):
+    """A http response definition."""
+
+    status_code: Annotated[int, Field(default=200, ge=100, le=599, alias='statusCode')]
+    envelope: Annotated[Optional[Envelope], Field(default=Envelope())]
+    content_schema: Annotated[Optional[dict[str, Any]], Field(default=None, alias='schema')]
+
+
 class DataGateway(BaseModel):
     """A Data Gateway resource specification."""
 
@@ -109,6 +124,7 @@ class DataGateway(BaseModel):
     __kind__ = 'DataGateway'
 
     request: Annotated[Request, ...]
+    response: Annotated[Optional[Response], Field(default=Response())]
     connection: Annotated[reference(Connection), expand_obj()]
     query_template: Annotated[str, ...]
 

@@ -91,6 +91,26 @@ spec:
                 - email
                 - sms
                 - push
+  response:
+    statusCode: 200
+    envelope:
+      type: array
+      property: data
+    schema:
+      type: object
+      properties:
+        userId:
+          type: integer
+          path: 'id'
+        attributes:
+          type: object
+          properties:
+            name:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+              path: 'timestamp'
   query_template:
     SELECT *
     FROM addresses
