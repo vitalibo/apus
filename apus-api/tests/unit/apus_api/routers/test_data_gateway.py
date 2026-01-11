@@ -3,12 +3,9 @@ from unittest import mock
 
 import pytest
 import pytz
-from apus_shared.resources import resource_as_json, resource_as_obj
+from apus_shared.resources import resource, resource_as_json
+from pyxis.config import Config
 from starlette.testclient import TestClient
-
-from apus_api.main import app
-from apus_api.models import Resource
-from apus_api.routers.data_gateway import DataGatewayRouter
 
 
 @pytest.fixture(scope='module')
@@ -20,9 +17,25 @@ def mock_session():
 
 
 @pytest.fixture(scope='module')
-def test_client(mock_session):  # noqa: ARG001
-    resource = Resource(**resource_as_obj(__file__, 'data/data_gateway/manifest.yaml')).root
-    app.include_router(DataGatewayRouter(resource))
+def dummy_config():
+    config = Config(
+        {
+            'envs': {
+                'LOG_LEVEL': 'DEBUG',
+                'CONFIG_FILE': str(resource(__file__, 'data/data_gateway/manifest.json')),
+            },
+        }
+    )
+
+    with mock.patch('pyxis.config.ConfigFactory') as mock_config_factory:
+        mock_config_factory.default_application.return_value = config
+        yield config
+
+
+@pytest.fixture(scope='module')
+def test_client(mock_session, dummy_config):  # noqa: ARG001
+    from apus_api.main import app  # noqa: PLC0415
+
     with (
         TestClient(app, raise_server_exceptions=False) as test_client,
         mock.patch('uuid.UUID', return_value='123e4567-e89b-12d3-a456-426614174000'),
