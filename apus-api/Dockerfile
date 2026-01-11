@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . /app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project --no-editable --all-packages
+    uv sync --locked --all-packages --no-install-project --no-editable --no-dev
 
 FROM python:3.9-slim
 
