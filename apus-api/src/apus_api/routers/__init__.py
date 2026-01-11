@@ -1,5 +1,6 @@
 from apus_api.models import Resource
 from apus_api.routers.data_gateway import DataGatewayRouter
+from apus_api.routers.health import HealthRouter
 
 
 def register(app, config):
@@ -9,3 +10,5 @@ def register(app, config):
         resource = Resource(**dict(definition)).root
         if resource.kind == 'DataGateway':
             app.include_router(DataGatewayRouter(resource))
+
+    app.include_router(HealthRouter())

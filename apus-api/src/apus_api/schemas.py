@@ -1,7 +1,8 @@
 from typing import Annotated, Any, ClassVar, Optional
 
-from apus_shared.models import BaseModel
 from pydantic import Field
+
+from apus_shared.models import BaseModel
 
 
 class Details(BaseModel):
