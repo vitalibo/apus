@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-pyxis = { git = "https://github.com/vitalibo/pyxis.git", tag = "0.2.8-pyspark" }
+pyxis = { url = "https://github.com/vitalibo/pyxis/archive/refs/tags/0.2.8-pyspark.zip" }
 
 [build-system]
 requires = ["uv_build"]

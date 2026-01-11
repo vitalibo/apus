@@ -111,7 +111,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "pydantic", specifier = "==2.10.6" },
-    { name = "pyxis", git = "https://github.com/vitalibo/pyxis.git?tag=0.2.8-pyspark" },
+    { name = "pyxis", url = "https://github.com/vitalibo/pyxis/archive/refs/tags/0.2.8-pyspark.zip" },
     { name = "snowflake-sqlalchemy", specifier = "==1.8.2" },
     { name = "sqlalchemy", specifier = "==2.0.45" },
 ]
@@ -769,7 +769,8 @@ wheels = [
 [[package]]
 name = "pyxis"
 version = "0.2.8"
-source = { git = "https://github.com/vitalibo/pyxis.git?tag=0.2.8-pyspark#af83b2a5b9d18fdb42f3c440d562245e194276a9" }
+source = { url = "https://github.com/vitalibo/pyxis/archive/refs/tags/0.2.8-pyspark.zip" }
+sdist = { hash = "sha256:280a2b2abd9f01230905a631adf713ad899edfe99213353e14ff1222aaf11ac3" }
 
 [[package]]
 name = "pyyaml"

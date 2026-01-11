@@ -23,4 +23,4 @@ app = FastAPI(
 exts.register(app)
 
 if __name__ == '__main__':
-    uvicorn.run(app='apus_api.main:app', host='127.0.0.1', port=8000)
+    uvicorn.run(app='apus_api.main:app', host='0.0.0.0', port=8000)  # noqa: S104

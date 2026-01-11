@@ -9,7 +9,7 @@ default:
 
 # install dependencies
 sync:
-    uv sync --locked --all-packages --all-extras --dev
+    uv sync --locked --all-packages --dev
 
 # run code formatter
 format *args:
