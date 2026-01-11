@@ -3,11 +3,11 @@ import sys
 
 import uvicorn
 from fastapi import FastAPI
-from pyxis.config import ConfigFactory
+from pyxis.aws.config import ConfigFactory
 
 from apus_api import exts, routers
 
-config = ConfigFactory.default_load()
+config = ConfigFactory.default_application()
 
 logging.basicConfig(
     level=config.get('envs.LOG_LEVEL', logging.INFO),
@@ -27,4 +27,4 @@ exts.register(app)
 routers.register(app, config)
 
 if __name__ == '__main__':
-    uvicorn.run(app='apus_api.main:app', host='0.0.0.0', port=8000)  # noqa: S104
+    uvicorn.run(app='apus_api.main:app', host='0.0.0.0', port=80)  # noqa: S104
