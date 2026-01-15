@@ -8,9 +8,7 @@ from apus_api.routers.health import HealthRouter
 def register(app, config):
     """Register routers to the FastAPI app based on config."""
 
-    config = config \
-        .with_fallback(ConfigFactory.from_file(config.envs.CONFIG_FILE)) \
-        .resolve()
+    config = config.with_fallback(ConfigFactory.from_file(config.envs.CONFIG_FILE)).resolve()
 
     for definition in config.resources:
         resource = Resource(**dict(definition)).root

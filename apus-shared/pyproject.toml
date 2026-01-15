@@ -10,6 +10,11 @@ dependencies = [
     "snowflake-sqlalchemy==1.8.2"
 ]
 
+[dependency-groups]
+dev = [
+    "aws-cdk-lib==2.233.0",
+]
+
 [tool.uv.sources]
 pyxis = { url = "https://github.com/vitalibo/pyxis/archive/refs/tags/0.2.8-pyspark.zip" }
 
