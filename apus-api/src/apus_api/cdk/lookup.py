@@ -53,7 +53,7 @@ def certificate_from_domain_name(cls, construct_id, domain_name: str):
 def file_dump(obj):
     """Dumps an object to a temporary JSON file and returns the file path."""
 
-    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', delete=False) as file:
+    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.json', delete=False) as file:
         json.dump(obj, file)
         return file.name
 

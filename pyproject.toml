@@ -21,4 +21,5 @@ dev = [
 members = [
     "apus-shared",
     "apus-api",
+    "apus-cli",
 ]
