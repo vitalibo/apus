@@ -74,7 +74,7 @@ class ApusApiStack(Stack):
             certificate = lookup.certificate_from_domain_name(
                 self,
                 'Certificate',
-                domain_name,
+                domain_name=domain_name,
             )
 
         except lookup.NotFoundError:

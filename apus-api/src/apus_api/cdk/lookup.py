@@ -2,15 +2,15 @@ import json
 import re
 import tempfile
 
-import boto3
+from apus_shared.cdk import boto3_session
 from aws_cdk import aws_certificatemanager as acm
 from aws_cdk import aws_route53 as route53
 
 
-def hosted_zone_from_domain_name(cls, construct_id, domain_name: str) -> route53.IHostedZone:
+def hosted_zone_from_domain_name(cls, construct_id, domain_name) -> route53.IHostedZone:
     """Finds and returns a Route53 hosted zone by domain name."""
 
-    route53_client = boto3.client('route53')
+    route53_client = boto3_session.client('route53')
 
     domain_name_parts = domain_name.split('.')
     for i in range(len(domain_name_parts) - 1):
@@ -28,10 +28,10 @@ def hosted_zone_from_domain_name(cls, construct_id, domain_name: str) -> route53
     raise NotFoundError(f'No hosted zone found for domain name: {domain_name}')
 
 
-def certificate_from_domain_name(cls, construct_id, domain_name: str):
+def certificate_from_domain_name(cls, construct_id, domain_name):
     """Finds and returns an ACM certificate by domain name."""
 
-    acm_client = boto3.client('acm')
+    acm_client = boto3_session.client('acm')
     paginator = acm_client.get_paginator('list_certificates')
 
     certificates = []

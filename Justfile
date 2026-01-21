@@ -37,3 +37,4 @@ clean:
     just apus-shared::clean
     just apus-api::clean
     just apus-cli::clean
+    rm -rf ./cdk.out
