@@ -1,44 +1,50 @@
-from aws_cdk import (  # noqa: I001
+from typing import Optional
+
+from apus_shared.cdk.stack import StackBuilder, register
+from aws_cdk import (
     aws_certificatemanager as acm,
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
     aws_s3_assets as s3_assets,
-    Stack,
 )
 
-from typing import Optional
-
 from apus_api.cdk import lookup
+from apus_api.models import DataGateway
 
 
-class ApusApiStack(Stack):
+class ApiStackBuilder(StackBuilder):
     """CDK stack for APUS API service."""
 
-    def __init__(self, scope: Stack, construct_id, config, domain_name=None, **kwargs):
-        super().__init__(scope, construct_id, **kwargs)
+    def build(self, stack, resources) -> None:
+        if not any(isinstance(r.spec, DataGateway) for r in resources):
+            return
 
         vpc = ec2.Vpc(
-            self,
+            stack,
             'Vpc',
             max_azs=2,
         )
 
         cluster = ecs.Cluster(
-            self,
+            stack,
             'Cluster',
             cluster_name='apus-api',
             vpc=vpc,
         )
 
         asset_file = s3_assets.Asset(
-            self,
+            stack,
             'AssetFile',
-            path=lookup.file_dump(obj=dict(config)),
+            path=lookup.file_dump(
+                obj={
+                    'resources': [r.model_dump() for r in resources],
+                }
+            ),
         )
 
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
-            self,
+            stack,
             'FargateService',
             cluster=cluster,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
@@ -48,7 +54,10 @@ class ApusApiStack(Stack):
                 },
             ),
             public_load_balancer=True,
-            **self.custom_domain_name(domain_name=domain_name),
+            **self.custom_domain_name(
+                stack=stack,
+                domain_name='apus-api.vitalibo.click',
+            ),
         )
 
         asset_file.grant_read(fargate_service.task_definition.task_role)
@@ -58,28 +67,29 @@ class ApusApiStack(Stack):
             healthy_http_codes='200',
         )
 
-    def custom_domain_name(self, domain_name: Optional[str]) -> dict:
+    @staticmethod
+    def custom_domain_name(stack, domain_name: Optional[str]) -> dict:
         """Configures custom domain name with https support."""
 
         if not domain_name:
             return {}
 
         hosted_zone = lookup.hosted_zone_from_domain_name(
-            self,
+            stack,
             'HostedZone',
             domain_name=domain_name,
         )
 
         try:
             certificate = lookup.certificate_from_domain_name(
-                self,
+                stack,
                 'Certificate',
                 domain_name=domain_name,
             )
 
         except lookup.NotFoundError:
             certificate = acm.Certificate(
-                self,
+                stack,
                 'Certificate',
                 domain_name=domain_name,
                 validation=acm.CertificateValidation.from_dns(hosted_zone=hosted_zone),
@@ -90,3 +100,6 @@ class ApusApiStack(Stack):
             'domain_zone': hosted_zone,
             'certificate': certificate,
         }
+
+
+register(ApiStackBuilder())

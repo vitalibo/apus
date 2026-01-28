@@ -2,15 +2,17 @@ from urllib.parse import urlparse
 
 from apus_shared.cdk import boto3_session, synthesizer
 
+from apus_cli.cdk.stack import ApusStack
 from apus_cli.cmd import Command
+from apus_cli.loader import load_resources
 
 
 class DeployCommand(Command):
     """Deploy APUS modules into AWS cloud."""
 
-    def __init__(self, stack_name, resources, s3_bucket, s3_prefix, tags):
+    def __init__(self, stack_name, files, s3_bucket, s3_prefix, tags):
         self.stack_name = stack_name
-        self.resources = resources
+        self.resources = load_resources(*files)
         self.s3_bucket = s3_bucket
         self.s3_prefix = s3_prefix
         self.tags = tags
@@ -57,14 +59,12 @@ class DeployCommand(Command):
 
     def synth(self):
         print('Synthesizing CloudFormation template...')  # noqa: T201
-        from apus_api.cdk.stack import ApusApiStack  # noqa: PLC0415
 
         s3_url = synthesizer.synth(
-            ApusApiStack,
+            ApusStack,
             bucket_prefix=self.s3_prefix,
             file_assets_bucket_name=self.s3_bucket,
-            domain_name='apus-api.vitalibo.click',
-            config=self.resources,
+            resources=self.resources,
         )
 
         url_parsed = urlparse(s3_url)

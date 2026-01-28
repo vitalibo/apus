@@ -3,8 +3,7 @@ import re
 import tempfile
 
 from apus_shared.cdk import boto3_session
-from aws_cdk import aws_certificatemanager as acm
-from aws_cdk import aws_route53 as route53
+from aws_cdk import aws_certificatemanager as acm, aws_route53 as route53
 
 
 def hosted_zone_from_domain_name(cls, construct_id, domain_name) -> route53.IHostedZone:

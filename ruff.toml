@@ -51,6 +51,9 @@ ignore = [
     "INP001", # implicit-namespace-package
 ]
 
+[lint.isort]
+combine-as-imports = true
+
 [lint.flake8-import-conventions.extend-aliases]
 "pyspark.sql.functions" = "fn"
 

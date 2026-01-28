@@ -1,4 +1,5 @@
 from collections import defaultdict
+from functools import partial
 
 import apus_api.models  # noqa: F401
 import yaml
@@ -25,6 +26,7 @@ def load_resources(*paths):
     resources = []
     for obj in objs:
         resource = generic_resource.model_validate(obj, context=context)
+        object.__setattr__(resource.root, 'model_dump', partial(obj.copy))  # noqa: PLC2801
         resources.append(resource.root)
 
-    return {'resources': objs}
+    return resources

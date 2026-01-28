@@ -5,7 +5,6 @@ from apus_shared.cdk import boto3_session
 
 from apus_cli.cmd.deploy import DeployCommand
 from apus_cli.cmd.destroy import DestroyCommand
-from apus_cli.config import load_resources
 
 cli = typer.Typer(help='APUS Command Line Interface')
 
@@ -62,7 +61,7 @@ def deploy(
         help='A list of tags to associate with the stack that is created or updated.',
     ),
 ):
-    command = DeployCommand(stack_name, load_resources(*files), s3_bucket, s3_prefix, tags)
+    command = DeployCommand(stack_name, files, s3_bucket, s3_prefix, tags)
     command.execute()
 
 
