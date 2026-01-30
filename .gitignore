@@ -4,5 +4,6 @@
 *.egg-info/
 build/
 dist/
+cdk.out/
 .venv/
 run.py
