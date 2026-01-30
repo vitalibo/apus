@@ -1,17 +1,21 @@
+import typer
 from apus_shared.cdk import boto3_session
 
-from apus_cli.cmd import Command
 
-
-class DestroyCommand(Command):
+class DestroyCommand:
     """Destroy APUS deployed modules."""
 
     def __init__(
         self,
-        stack_name: str,
+        stack_name: str = typer.Option(
+            ...,
+            '--stack-name',
+            help='The name of the AWS CloudFormation stack to destroy',
+        ),
     ):
         self.stack_name = stack_name
         self.cloudformation = boto3_session.client('cloudformation')
+        self.execute()
 
     def execute(self):
         print('Destroying APUS resources...')  # noqa: T201
