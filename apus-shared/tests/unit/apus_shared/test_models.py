@@ -3,10 +3,10 @@ from unittest import mock
 
 import pytest
 from pydantic import ValidationError
+from pyxis.resources import load_yaml_all
 
 from apus_shared import models
 from apus_shared.models import BaseModel, Connection, Engine, create_resource
-from apus_shared.resources import resource_as_objs
 
 Resource = create_resource()
 
@@ -73,7 +73,7 @@ def test_create_resource(helpers):  # noqa: PLR0915
 
 
 def test_connection(subtests):  # noqa: PLR0915
-    objs = resource_as_objs(__file__, 'data/connections.yaml')
+    objs = load_yaml_all(__file__, 'data/connections.yaml')
 
     with subtests.test('mysql'):
         resource = Resource(**objs[0]).root

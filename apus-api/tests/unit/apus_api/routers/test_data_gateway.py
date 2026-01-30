@@ -3,8 +3,8 @@ from unittest import mock
 
 import pytest
 import pytz
-from apus_shared.resources import resource, resource_as_json
 from pyxis.config import Config
+from pyxis.resources import load_json, resource
 from starlette.testclient import TestClient
 
 
@@ -48,13 +48,13 @@ def test_data_gateway_errors(subtests, test_client, mock_session):
         response = test_client.get('/unknown/path')
 
         assert response.status_code == 404
-        assert response.json() == resource_as_json(__file__, 'data/data_gateway/errors/not_found.json')
+        assert response.json() == load_json(__file__, 'data/data_gateway/errors/not_found.json')
 
     with subtests.test('method not allowed'):
         response = test_client.get('/users/12345/orders/84f4b963')
 
         assert response.status_code == 405
-        assert response.json() == resource_as_json(__file__, 'data/data_gateway/errors/method_not_allowed.json')
+        assert response.json() == load_json(__file__, 'data/data_gateway/errors/method_not_allowed.json')
 
     with subtests.test('internal server error'):
         mock_connection = mock.MagicMock()
@@ -64,7 +64,7 @@ def test_data_gateway_errors(subtests, test_client, mock_session):
         response = test_client.request(**default_request())
 
         assert response.status_code == 500
-        assert response.json() == resource_as_json(__file__, 'data/data_gateway/errors/internal_server_error.json')
+        assert response.json() == load_json(__file__, 'data/data_gateway/errors/internal_server_error.json')
 
     with subtests.test('bad request'):
         response = test_client.request(
@@ -83,7 +83,7 @@ def test_data_gateway_errors(subtests, test_client, mock_session):
         )
 
         assert response.status_code == 400
-        assert response.json() == resource_as_json(__file__, 'data/data_gateway/errors/bad_request.json')
+        assert response.json() == load_json(__file__, 'data/data_gateway/errors/bad_request.json')
 
 
 def test_data_gateway(test_client, mock_session):
@@ -98,11 +98,11 @@ def test_data_gateway(test_client, mock_session):
     response = test_client.request(**default_request())
 
     assert response.status_code == 200
-    assert response.json() == resource_as_json(__file__, 'data/data_gateway/response.json')
+    assert response.json() == load_json(__file__, 'data/data_gateway/response.json')
 
 
 def default_request(**kwargs):
-    params = resource_as_json(__file__, 'data/data_gateway/request.json')
+    params = load_json(__file__, 'data/data_gateway/request.json')
     for name in ['params', 'json']:
         if name in kwargs:
             params[name].update(kwargs[name])

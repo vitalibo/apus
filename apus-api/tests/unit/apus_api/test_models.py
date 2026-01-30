@@ -1,10 +1,10 @@
-from apus_shared.resources import resource_as_objs
+from pyxis.resources import load_yaml_all
 
 from apus_api.models import PathParameter, QueryParameter, Request
 
 
 def test_request(subtests):
-    objs = resource_as_objs(__file__, 'data/requests.yaml')
+    objs = load_yaml_all(__file__, 'data/requests.yaml')
 
     with subtests.test('request'):
         actual = Request(**objs[0])

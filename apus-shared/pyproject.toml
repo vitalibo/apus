@@ -16,7 +16,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-pyxis = { url = "https://github.com/vitalibo/pyxis/archive/refs/tags/0.2.8-pyspark.zip" }
+pyxis = { url = "https://github.com/vitalibo/pyxis/archive/refs/tags/0.2.10-pyspark.zip" }
 
 [build-system]
 requires = ["uv_build"]
