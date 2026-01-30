@@ -18,8 +18,8 @@ class DestroyCommand:
         self.execute()
 
     def execute(self):
-        print('Destroying APUS resources...')  # noqa: T201
+        print('Destroying APUS resources...')
         self.cloudformation.delete_stack(StackName=self.stack_name)
         waiter = self.cloudformation.get_waiter('stack_delete_complete')
         waiter.wait(StackName=self.stack_name)
-        print('Successfully destroyed stack')  # noqa: T201
+        print('Successfully destroyed stack')

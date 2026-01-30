@@ -47,24 +47,24 @@ class DeployCommand:
         self.s3_prefix = s3_prefix
         self.tags = tags
         self.cloudformation = boto3_session.client('cloudformation')
+        self.execute()
 
     def execute(self):
-        print('Deploying APUS resources...')  # noqa: T201
         template_url = self.synth()
-        if not self._stack_exists():
-            self._create_stack(template_url)
+        if not self.stack_exists():
+            self.create_stack(template_url)
         else:
-            self._update_stack(template_url)
+            self.update_stack(template_url)
 
-    def _stack_exists(self) -> bool:
+    def stack_exists(self) -> bool:
         try:
             self.cloudformation.describe_stacks(StackName=self.stack_name)
         except self.cloudformation.exceptions.ClientError:
             return False
         return True
 
-    def _create_stack(self, template_url):
-        print('Waiting for stack create to complete')  # noqa: T201
+    def create_stack(self, template_url):
+        print('Waiting for stack create to complete')
         self.cloudformation.create_stack(
             StackName=self.stack_name,
             TemplateURL=template_url,
@@ -73,10 +73,10 @@ class DeployCommand:
 
         waiter = self.cloudformation.get_waiter('stack_create_complete')
         waiter.wait(StackName=self.stack_name)
-        print('Successfully created stack')  # noqa: T201
+        print('Successfully created stack')
 
-    def _update_stack(self, template_url):
-        print('Waiting for stack update to complete')  # noqa: T201
+    def update_stack(self, template_url):
+        print('Waiting for stack update to complete')
         self.cloudformation.update_stack(
             StackName=self.stack_name,
             TemplateURL=template_url,
@@ -85,10 +85,10 @@ class DeployCommand:
 
         waiter = self.cloudformation.get_waiter('stack_update_complete')
         waiter.wait(StackName=self.stack_name)
-        print('Successfully updated stack')  # noqa: T201
+        print('Successfully updated stack')
 
     def synth(self):
-        print('Synthesizing CloudFormation template...')  # noqa: T201
+        print('Synthesizing CloudFormation template...')
 
         s3_url = synthesizer.synth(
             ApusStack,

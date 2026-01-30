@@ -50,6 +50,9 @@ ignore = [
 "**/conftest.py" = [
     "INP001", # implicit-namespace-package
 ]
+"**/apus_cli/cmd/*.py" = [
+    "T201", # print
+]
 
 [lint.isort]
 combine-as-imports = true
