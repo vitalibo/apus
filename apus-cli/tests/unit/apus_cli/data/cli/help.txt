@@ -1,0 +1,19 @@
+Usage: root [OPTIONS] COMMAND [ARGS]...
+
+  APUS Command Line Interface
+
+Options:
+  --profile TEXT                  Use a specific AWS profile from your
+                                  credential file.
+  --region TEXT                   The AWS region to use. Overrides config/env
+                                  settings.
+  --install-completion [bash|zsh|fish|powershell|pwsh]
+                                  Install completion for the specified shell.
+  --show-completion [bash|zsh|fish|powershell|pwsh]
+                                  Show completion for the specified shell, to
+                                  copy it or customize the installation.
+  --help                          Show this message and exit.
+
+Commands:
+  deploy   Deploy APUS modules into AWS cloud.
+  destroy  Destroy APUS modules.

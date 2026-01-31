@@ -1,0 +1,15 @@
+Usage: root deploy [OPTIONS]
+
+  Deploy APUS modules into AWS cloud.
+
+Options:
+  -f, --files PATH   List of manifest files to deploy  [required]
+  --stack-name TEXT  The name of the AWS CloudFormation stack you re/deploying
+                     to  [required]
+  --s3-bucket TEXT   The name of the S3 bucket where this command uploads your
+                     artifacts  [required]
+  --s3-prefix TEXT   A prefix name that the command adds to the artifacts' name
+                     when it uploads them to the S3 bucket  [required]
+  --tags TEXT        A list of tags to associate with the stack that is created
+                     or updated.
+  --help             Show this message and exit.

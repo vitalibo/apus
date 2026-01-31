@@ -1,0 +1,15 @@
+apiVersion: apus/v1
+kind: DataGateway
+metadata:
+  name: MyEndpoint2
+spec:
+  connection: MyConnection2
+  request:
+    path: '/resource2/{resourceId}'
+    httpMethod: GET
+    pathParameters:
+      - name: resourceId
+        type: integer
+    queryParameters: { }
+  query_template: |
+    SELECT * FROM bar

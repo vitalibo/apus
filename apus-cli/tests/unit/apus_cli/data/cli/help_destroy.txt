@@ -1,0 +1,8 @@
+Usage: root destroy [OPTIONS]
+
+  Destroy APUS modules.
+
+Options:
+  --stack-name TEXT  The name of the AWS CloudFormation stack to destroy
+                     [required]
+  --help             Show this message and exit.

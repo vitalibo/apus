@@ -4,10 +4,10 @@ from apus_shared.cdk import boto3_session
 from apus_cli.cmd.deploy import DeployCommand
 from apus_cli.cmd.destroy import DestroyCommand
 
-cli = typer.Typer(help='APUS Command Line Interface')
+app = typer.Typer(help='APUS Command Line Interface')
 
 
-@cli.callback()
+@app.callback()
 def configure(
     profile: str = typer.Option(
         None,
@@ -29,8 +29,8 @@ def configure(
     boto3_session.Session(**options)
 
 
-cli.command(name='deploy', help='Deploy APUS modules into AWS cloud.')(DeployCommand)
-cli.command(name='destroy', help='Destroy APUS modules.')(DestroyCommand)
+app.command(name='deploy', help='Deploy APUS modules into AWS cloud.')(DeployCommand)
+app.command(name='destroy', help='Destroy APUS modules.')(DestroyCommand)
 
 if __name__ == '__main__':
-    cli()
+    app()

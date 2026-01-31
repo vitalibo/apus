@@ -1,0 +1,18 @@
+apiVersion: apus/v1
+kind: DataGateway
+metadata:
+  name: MyEndpoint1
+spec:
+  connection: MyConnection1
+  request:
+    path: '/resource1/{resourceId}'
+    httpMethod: GET
+    pathParameters:
+      - name: resourceId
+        type: integer
+    queryParameters:
+      - name: filter
+        type: string
+  query_template: |
+    SELECT * FROM foo
+    WHERE raw_id = :pathParameters_resourceId;

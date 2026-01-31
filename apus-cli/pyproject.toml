@@ -16,7 +16,7 @@ apus-api = { workspace = true }
 apus-shared = { workspace = true }
 
 [project.scripts]
-apus = "apus_cli.main:cli"
+apus = "apus_cli.main:app"
 
 [build-system]
 requires = ["uv_build"]

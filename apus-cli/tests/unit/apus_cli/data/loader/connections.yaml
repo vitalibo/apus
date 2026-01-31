@@ -1,0 +1,28 @@
+apiVersion: apus/v1
+kind: Connection
+metadata:
+  name: MyConnection1
+spec:
+  engine: mysql
+  host: mysql.example.com
+  port: 3306
+  username: root
+  password: 5ecr3t  # pragma: allowlist secret
+  database: mydb
+  properties:
+    useUnicode: 'true'
+    characterEncoding: UTF-8
+
+
+---
+apiVersion: apus/v1
+kind: Connection
+metadata:
+  name: MyConnection2
+spec:
+  engine: postgresql
+  host: postgres.example.com
+  port: 5432
+  username: admin
+  password: 5ecr3t  # pragma: allowlist secret
+  database: postgres
