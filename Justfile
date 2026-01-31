@@ -32,6 +32,12 @@ test:
     just apus-api::test
     just apus-cli::test
 
+# run unit tests with coverage
+coverage *args:
+    just apus-shared::coverage {{ args }}
+    just apus-api::coverage {{ args }}
+    just apus-cli::coverage {{ args }}
+
 # clean workdir
 clean:
     just apus-shared::clean

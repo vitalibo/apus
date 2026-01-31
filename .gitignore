@@ -7,3 +7,4 @@ dist/
 cdk.out/
 .venv/
 run.py
+.coverage

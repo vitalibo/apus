@@ -36,6 +36,6 @@ jobs:
           just format --check --diff
           just check --output-format full
 
-      - name: 'Run tests'
+      - name: 'Run tests with coverage'
         run: |
-          just test
+          just coverage --cov-report markdown-append:$GITHUB_STEP_SUMMARY
