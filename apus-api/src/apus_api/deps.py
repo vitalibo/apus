@@ -12,6 +12,11 @@ if TYPE_CHECKING:
     from apus_shared.models import Connection
     from sqlalchemy.orm import Session
 
+__all__ = [
+    'get_session',
+    'strict_query_params',
+]
+
 
 def get_session(connection: Connection) -> Callable[[], Generator[Session, None, None]]:
     """Get a scoped session from a session factory."""

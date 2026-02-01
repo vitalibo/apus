@@ -17,6 +17,10 @@ from apus_api import schemas
 if TYPE_CHECKING:
     from starlette.requests import Request
 
+__all__ = [
+    'register',
+]
+
 
 def register(app: FastAPI) -> None:
     """Register FastAPI extensions."""
@@ -99,6 +103,11 @@ def override_openapi(app: FastAPI) -> None:
                 responses = param.get('responses')
                 if '422' in responses:
                     del responses['422']
+
+        response_schemas = app.openapi_schema['components']['schemas']
+        for name in ['HTTPValidationError', 'ValidationError']:
+            if name in response_schemas:
+                del response_schemas[name]
         return app.openapi_schema
 
     app.openapi = wrap

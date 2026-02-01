@@ -85,6 +85,18 @@ def test_data_gateway_errors(subtests, test_client, mock_session):
         assert response.status_code == 400
         assert response.json() == load_json(__file__, 'data/data_gateway/errors/bad_request.json')
 
+    with subtests.test('bad request: extra forbidden'):
+        response = test_client.request(
+            **default_request(
+                params={
+                    'foo': 'bar',
+                }
+            )
+        )
+
+        assert response.status_code == 400
+        assert response.json() == load_json(__file__, 'data/data_gateway/errors/bad_request_extra_forbidden.json')
+
 
 def test_data_gateway(test_client, mock_session):
     mock_connection = mock.MagicMock()
