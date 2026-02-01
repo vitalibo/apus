@@ -1,0 +1,39 @@
+{
+  "Outputs": {
+    "OutputValue": {
+      "Value": {
+        "Ref": "TestBucket560B80BC"
+      }
+    }
+  },
+  "Parameters": {
+    "Environment": {
+      "Default": "test",
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "TestBucket560B80BC": {
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "aws:cdk:path": "Stack/TestBucket/Resource"
+      },
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              "apus-",
+              {
+                "Ref": "Environment"
+              },
+              "-bucket"
+            ]
+          ]
+        }
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain"
+    }
+  }
+}

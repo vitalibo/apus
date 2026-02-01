@@ -27,7 +27,7 @@ def synth(cls, *args, **kwargs):
         'Stack',
         *args,
         synthesizer=cdk.DefaultStackSynthesizer(
-            bucket_prefix=kwargs.pop('bucket_prefix'),
+            bucket_prefix=kwargs.pop('bucket_prefix').removesuffix('/') + '/',
             generate_bootstrap_version_rule=False,
             file_assets_bucket_name=kwargs.pop('file_assets_bucket_name'),
         ),
