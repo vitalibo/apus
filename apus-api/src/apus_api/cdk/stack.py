@@ -1,6 +1,6 @@
 from typing import Optional
 
-from apus_shared.cdk.stack import StackBuilder, register
+from apus_shared.cdk.builder_registry import Builder, register
 from aws_cdk import (
     aws_certificatemanager as acm,
     aws_ec2 as ec2,
@@ -13,7 +13,7 @@ from apus_api.cdk import lookup
 from apus_api.models import DataGateway
 
 
-class ApiStackBuilder(StackBuilder):
+class ApiStackBuilder(Builder):
     """CDK stack for APUS API service."""
 
     def build(self, stack, resources) -> None:

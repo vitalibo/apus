@@ -9,7 +9,7 @@ if typing.TYPE_CHECKING:
     from apus_shared.models import Resource
 
 
-class StackBuilder(abc.ABC):
+class Builder(abc.ABC):
     """AWS CDK Stack Builder base class."""
 
     @abc.abstractmethod
@@ -17,10 +17,10 @@ class StackBuilder(abc.ABC):
         """Build CDK resources in the stack."""
 
 
-def register(builder: StackBuilder) -> None:
+def register(builder: Builder) -> None:
     """Register a StackBuilder implementation."""
 
     builders.append(builder)
 
 
-builders: typing.Final[list[StackBuilder]] = []
+builders: typing.Final[list[Builder]] = []

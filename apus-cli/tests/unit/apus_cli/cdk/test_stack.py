@@ -1,19 +1,19 @@
 from unittest import mock
 
 import aws_cdk as cdk
-from apus_shared.cdk.stack import StackBuilder, register
+from apus_shared.cdk.builder_registry import Builder, register
 from aws_cdk import assertions, aws_s3, aws_sqs
 
 from apus_cli.cdk.stack import ApusStack
 
 
-class S3StackBuilder(StackBuilder):
+class S3StackBuilder(Builder):
     def build(self, stack, resources):
         if any(r.spec == 's3' for r in resources):
             aws_s3.Bucket(stack, 'MyBucket', bucket_name='my-test-bucket')
 
 
-class SQSStackBuilder(StackBuilder):
+class SQSStackBuilder(Builder):
     def build(self, stack, resources):
         if any(r.spec == 'sqs' for r in resources):
             aws_sqs.Queue(stack, 'MyQueue', queue_name='my-test-queue')
