@@ -123,6 +123,7 @@ class DataGateway(BaseModel):
     __api_version__ = 'apus/v1'
     __kind__ = 'DataGateway'
 
+    domain: Annotated[Optional[str], Field(None, min_length=1, max_length=256, pattern='^[A-Za-z][A-Za-z0-9._-]+$')]
     request: Annotated[Request, ...]
     response: Annotated[Optional[Response], Field(default=Response())]
     connection: Annotated[reference(Connection), expand_obj()]

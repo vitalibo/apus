@@ -1,6 +1,9 @@
+import re
+from collections import defaultdict
 from typing import Optional
 
 from apus_shared.cdk.builder_registry import Builder, register
+from apus_shared.models import Connection
 from aws_cdk import (
     aws_certificatemanager as acm,
     aws_ec2 as ec2,
@@ -33,9 +36,15 @@ class ApiStackBuilder(Builder):
             vpc=vpc,
         )
 
+        for domain_name, domain_resources in self.group_by_domain(resources):
+            self.service(stack, cluster, domain_name, domain_resources)
+
+    def service(self, stack, cluster, domain_name, resources) -> None:
+        construct_id = ''.join(o.title() for o in re.split(r'[-._]', domain_name or ''))
+
         asset_file = s3_assets.Asset(
             stack,
-            'AssetFile',
+            f'{construct_id}AssetFile',
             path=lookup.file_dump(
                 obj={
                     'resources': [r.model_dump() for r in resources],
@@ -45,7 +54,7 @@ class ApiStackBuilder(Builder):
 
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
             stack,
-            'FargateService',
+            f'{construct_id}FargateService',
             cluster=cluster,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_registry('vitalibo/apus-api:latest'),
@@ -56,7 +65,8 @@ class ApiStackBuilder(Builder):
             public_load_balancer=True,
             **self.custom_domain_name(
                 stack=stack,
-                domain_name='apus-api.vitalibo.click',
+                construct_id=construct_id,
+                domain_name=domain_name,
             ),
         )
 
@@ -68,7 +78,7 @@ class ApiStackBuilder(Builder):
         )
 
     @staticmethod
-    def custom_domain_name(stack, domain_name: Optional[str]) -> dict:
+    def custom_domain_name(stack, construct_id, domain_name: Optional[str]) -> dict:
         """Configures custom domain name with https support."""
 
         if not domain_name:
@@ -76,21 +86,21 @@ class ApiStackBuilder(Builder):
 
         hosted_zone = lookup.hosted_zone_from_domain_name(
             stack,
-            'HostedZone',
+            f'{construct_id}HostedZone',
             domain_name=domain_name,
         )
 
         try:
             certificate = lookup.certificate_from_domain_name(
                 stack,
-                'Certificate',
+                f'{construct_id}Certificate',
                 domain_name=domain_name,
             )
 
         except lookup.NotFoundError:
             certificate = acm.Certificate(
                 stack,
-                'Certificate',
+                f'{construct_id}Certificate',
                 domain_name=domain_name,
                 validation=acm.CertificateValidation.from_dns(hosted_zone=hosted_zone),
             )
@@ -100,6 +110,26 @@ class ApiStackBuilder(Builder):
             'domain_zone': hosted_zone,
             'certificate': certificate,
         }
+
+    @staticmethod
+    def group_by_domain(resources):
+        domains = defaultdict(list)
+        connections = []
+        for resource in resources:
+            if isinstance(resource.spec, Connection):
+                connections.append(resource)
+            if isinstance(resource.spec, DataGateway):
+                domains[resource.spec.domain].append(resource)
+
+        for gateways in domains.values():  # noqa: PLR1702
+            domain_connections = []
+            for gateway in gateways:
+                for connection in connections:
+                    if connection.spec == gateway.spec.connection and connection not in domain_connections:
+                        domain_connections.append(connection)
+            gateways.extend(domain_connections)
+
+        return domains.items()
 
 
 register(ApiStackBuilder())

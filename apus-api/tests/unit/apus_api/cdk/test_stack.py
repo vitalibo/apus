@@ -32,7 +32,7 @@ def test_build():
                 for name in ['request', 'response', 'connection', 'query_template']
             }
         }
-        mock_resource.spec = type('TestDataGateway', (DataGateway,), fields)()
+        mock_resource.spec = type('TestDataGateway', (DataGateway,), fields)(domain='apus-api.vitalibo.click')
 
         builder.build(stack, [mock_resource])
 
