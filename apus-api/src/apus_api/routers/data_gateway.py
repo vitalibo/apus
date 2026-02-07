@@ -34,7 +34,13 @@ class DataGatewayRouter(APIRouter):
             status_code=resource.spec.response.status_code,
             response_model=self.response_model,
             tags={k[4:]: v for k, v in resource.metadata.annotations.items() if k.startswith('tags/')},
-            responses={'400': {'model': schemas.ErrorResponse, 'description': 'Validation Error'}},
+            responses={
+                '400': {
+                    'model': schemas.ErrorResponse,
+                    'description': 'Validation Error',
+                    'content': schemas.ErrorResponse.BadRequest,
+                },
+            },
         )(forge.sign(*self._signature(resource.spec))(self.handle))
 
     def handle(self, session: Session, **kwargs):

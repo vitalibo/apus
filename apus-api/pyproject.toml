@@ -9,6 +9,7 @@ dependencies = [
     "python-forge==18.6.0",
     "datamodel-code-generator==0.44.0",
     "jinja2==3.1.6",
+    "python-jose==3.5.0",
     "apus_shared",
 ]
 

@@ -117,6 +117,17 @@ class Response(BaseModel):
     content_schema: Annotated[Optional[dict[str, Any]], Field(default=None, alias='schema')]
 
 
+class Authentication(BaseModel):
+    """An authentication definition."""
+
+    __api_version__ = 'apus/v1'
+    __kind__ = 'Authentication'
+
+    path: Annotated[str, ...]
+    expires_in: Annotated[int, Field(..., ge=60, alias='expiresIn')]
+    user_pool: Annotated[Optional[str], Field(None, alias='userPool')]
+
+
 class DataGateway(BaseModel):
     """A Data Gateway resource specification."""
 
@@ -124,6 +135,7 @@ class DataGateway(BaseModel):
     __kind__ = 'DataGateway'
 
     domain: Annotated[Optional[str], Field(None, min_length=1, max_length=256, pattern='^[A-Za-z][A-Za-z0-9._-]+$')]
+    authentication: Annotated[Optional[str], Field(default=None)]
     request: Annotated[Request, ...]
     response: Annotated[Optional[Response], Field(default=Response())]
     connection: Annotated[reference(Connection), expand_obj()]

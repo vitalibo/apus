@@ -6,6 +6,7 @@ from apus_shared.cdk.builder_registry import Builder, register
 from apus_shared.models import Connection
 from aws_cdk import (
     aws_certificatemanager as acm,
+    aws_cognito as cognito,
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
@@ -13,7 +14,7 @@ from aws_cdk import (
 )
 
 from apus_api.cdk import lookup
-from apus_api.models import DataGateway
+from apus_api.models import Authentication, DataGateway
 
 
 class ApiStackBuilder(Builder):
@@ -36,10 +37,12 @@ class ApiStackBuilder(Builder):
             vpc=vpc,
         )
 
-        for domain_name, domain_resources in self.group_by_domain(resources):
-            self.service(stack, cluster, domain_name, domain_resources)
+        user_pool_props = self.cognito_user_pool(stack, resources)
 
-    def service(self, stack, cluster, domain_name, resources) -> None:
+        for domain_name, domain_resources in self.group_by_domain(resources):
+            self.service(stack, cluster, domain_name, user_pool_props, domain_resources)
+
+    def service(self, stack, cluster, domain_name, user_pool_props, resources) -> None:
         construct_id = ''.join(o.title() for o in re.split(r'[-._]', domain_name or ''))
 
         asset_file = s3_assets.Asset(
@@ -60,6 +63,7 @@ class ApiStackBuilder(Builder):
                 image=ecs.ContainerImage.from_registry('vitalibo/apus-api:latest'),
                 environment={
                     'CONFIG_FILE': asset_file.s3_object_url,
+                    **user_pool_props,
                 },
             ),
             public_load_balancer=True,
@@ -76,6 +80,34 @@ class ApiStackBuilder(Builder):
             path='/health',
             healthy_http_codes='200',
         )
+
+    @staticmethod
+    def cognito_user_pool(stack, resources):
+        if not any(isinstance(r.spec, Authentication) for r in resources):
+            return {}
+
+        user_pool = cognito.CfnUserPool(
+            stack,
+            'UserPool',
+            admin_create_user_config=cognito.CfnUserPool.AdminCreateUserConfigProperty(
+                allow_admin_create_user_only=True,
+            ),
+        )
+
+        user_pool_client = cognito.CfnUserPoolClient(
+            stack,
+            'UserPoolClient',
+            user_pool_id=user_pool.ref,
+            generate_secret=True,
+            explicit_auth_flows=[
+                'ALLOW_USER_PASSWORD_AUTH',
+            ],
+        )
+
+        return {
+            'USER_POOL_ID': user_pool.ref,
+            'USER_POOL_CLIENT_ID': user_pool_client.ref,
+        }
 
     @staticmethod
     def custom_domain_name(stack, construct_id, domain_name: Optional[str]) -> dict:
