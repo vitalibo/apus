@@ -1,3 +1,4 @@
+from datetime import datetime  # noqa: TC003
 from enum import Enum
 from functools import reduce
 from typing import Annotated, Any, Literal, Optional, Union
@@ -140,6 +141,13 @@ class DataGateway(BaseModel):
     response: Annotated[Optional[Response], Field(default=Response())]
     connection: Annotated[reference(Connection), expand_obj()]
     query_template: Annotated[str, ...]
+
+
+class Identity(BaseModel):
+    """A user identity definition."""
+
+    username: Annotated[str, Field(..., alias='sub')]
+    expired_at: Annotated[datetime, Field(..., alias='exp')]
 
 
 Resource = create_resource()

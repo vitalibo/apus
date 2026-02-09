@@ -9,12 +9,12 @@ import boto3
 import pytz
 from apus_shared.models import Resource  # noqa: TC002
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import HTTPBasic, HTTPBasicCredentials  # noqa: TC002
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestFormStrict  # noqa: TC002
 from jose import jwt
 from starlette import status
 
 from apus_api import schemas
-from apus_api.models import Authentication  # noqa: TC001
+from apus_api.models import Authentication, Identity  # noqa: TC001
 
 
 class AuthenticationRouter(APIRouter):
@@ -23,6 +23,7 @@ class AuthenticationRouter(APIRouter):
     def __init__(self, resource: Resource[Authentication]) -> None:
         super().__init__()
         self.expires_in = timedelta(seconds=resource.spec.expires_in)
+        self.oauth2_scheme = OAuth2PasswordBearer(tokenUrl=resource.spec.path)
 
         self.cognito_idp = boto3.client('cognito-idp')
 
@@ -31,7 +32,7 @@ class AuthenticationRouter(APIRouter):
             UserPoolId=os.environ['USER_POOL'], ClientId=self.client_id
         )['UserPoolClient']['ClientSecret']
 
-        self.get(
+        self.post(
             path=resource.spec.path,
             summary=resource.metadata.labels.get('summary', resource.metadata.name),
             description=resource.metadata.labels.get('description'),
@@ -46,7 +47,7 @@ class AuthenticationRouter(APIRouter):
             },
         )(self.auth)
 
-    def auth(self, credentials: Annotated[HTTPBasicCredentials, Depends(HTTPBasic())]) -> schemas.AccessTokenResponse:
+    def auth(self, credentials: Annotated[OAuth2PasswordRequestFormStrict, Depends()]) -> schemas.AccessTokenResponse:
         digest = hmac.new(
             bytes(self.client_secret, 'latin-1'),
             bytes(credentials.username + self.client_id, 'latin-1'),
@@ -90,3 +91,16 @@ class AuthenticationRouter(APIRouter):
             token_type='Bearer',  # noqa: S106
             expires_in=self.expires_in.seconds,
         )
+
+    def identity(self):
+        oauth2_scheme = self.oauth2_scheme
+
+        def get(token: Annotated[str, Depends(oauth2_scheme)]):
+            try:
+                payload = jwt.decode(token, self.client_secret, algorithms=['HS256'])
+            except jwt.JWTError as e:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Forbidden') from e
+
+            return Identity(**payload)
+
+        return get

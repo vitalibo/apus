@@ -21,11 +21,21 @@ def register(app, config):
         context[resource.kind][resource.metadata.name] = obj
         objs.append(obj)
 
+    resources = []
     for obj in objs:
         resource = GenericResource.model_validate(obj, context=context).root
-        if resource.kind == 'DataGateway':
-            app.include_router(DataGatewayRouter(resource))
-        if resource.kind == 'Authentication':
-            app.include_router(AuthenticationRouter(resource))
+        resources.append((resource.kind, resource))
+
+    identities = {}
+    for kind, resource in resources:
+        if kind == 'Authentication':
+            auth_route = AuthenticationRouter(resource)
+            identities[resource.metadata.name] = auth_route.identity()
+            app.include_router(auth_route)
+
+    for kind, resource in resources:
+        if kind == 'DataGateway':
+            route = DataGatewayRouter(resource, identity=identities.get(resource.spec.authentication))
+            app.include_router(route)
 
     app.include_router(HealthRouter())

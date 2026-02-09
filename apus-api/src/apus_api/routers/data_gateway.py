@@ -9,6 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.orm.session import Session
 
 from apus_api import deps, schemas
+from apus_api.models import Identity
 from apus_api.refl import create_model, create_response_model, path_arg, query_arg
 
 if TYPE_CHECKING:
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 class DataGatewayRouter(APIRouter):
     """A router for a Data Gateway."""
 
-    def __init__(self, resource: Resource[DataGateway]) -> None:
+    def __init__(self, resource: Resource[DataGateway], identity) -> None:
         super().__init__()
         self.query_template = Template(resource.spec.query_template)
         self.response_model = create_response_model(resource.spec.response)
@@ -41,7 +42,7 @@ class DataGatewayRouter(APIRouter):
                     'content': schemas.ErrorResponse.BadRequest,
                 },
             },
-        )(forge.sign(*self._signature(resource.spec))(self.handle))
+        )(forge.sign(*self._signature(resource.spec, identity))(self.handle))
 
     def handle(self, session: Session, **kwargs):
         query = self.query_template.render(**kwargs)
@@ -55,13 +56,16 @@ class DataGatewayRouter(APIRouter):
         )
 
     @staticmethod
-    def _signature(spec: DataGateway):
+    def _signature(spec: DataGateway, identity):
         params = [
             forge.arg('session', type=Annotated[Session, Depends(deps.get_session(spec.connection))]),
             forge.arg('_', type=Annotated[Session, Depends(deps.strict_query_params)]),
             *[path_arg(x) for x in spec.request.path_parameters.values()],
             *[query_arg(x) for x in spec.request.query_parameters.values() if x.default is None],
         ]
+
+        if spec.authentication is not None:
+            params.append(forge.arg('identity', type=Annotated[Identity, Depends(identity)]))
 
         if spec.request.body is not None:
             params.append(forge.arg('body', type=create_model(spec.request.body)))
