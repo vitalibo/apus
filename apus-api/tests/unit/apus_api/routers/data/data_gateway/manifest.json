@@ -163,6 +163,74 @@
         },
         "query_template": "SELECT * FROM addresses LIMIT 10;"
       }
+    },
+    {
+      "apiVersion": "apus/v1",
+      "kind": "DataGateway",
+      "metadata": {
+        "name": "TestDataGateway"
+      },
+      "spec": {
+        "authentication": "Test",
+        "connection": {
+          "engine": "snowflake",
+          "account": "my_account",
+          "username": "test",
+          "private_key": "123"
+        },
+        "request": {
+          "path": "/users/{user_id}",
+          "httpMethod": "GET",
+          "pathParameters": [
+            {
+              "name": "user_id",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            }
+          ],
+          "queryParameters": [
+          ],
+          "body": null
+        },
+        "response": {
+          "statusCode": 200,
+          "envelope": {
+            "type": "object",
+            "property": "data"
+          },
+          "schema": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "integer",
+                "path": "id"
+              },
+              "name": {
+                "type": "string",
+                "path": "name"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "path": "created_at"
+              }
+            }
+          }
+        },
+        "query_template": "SELECT * FROM user WHERE id = :pathParameters_user_id"
+      }
+    },
+    {
+      "apiVersion": "apus/v1",
+      "kind": "Authentication",
+      "metadata": {
+        "name": "Test"
+      },
+      "spec": {
+        "path": "/auth",
+        "expiresIn": 300
+      }
     }
   ]
 }

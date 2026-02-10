@@ -40,7 +40,12 @@ def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSO
         status_code=exc.status_code,
         content=schemas.ErrorResponse(
             status=exc.status_code,
-            message=exc.detail,
+            message=(
+                exc.detail
+                # we want to hide the default 401 message as it is not aligned with our error response format
+                if not (exc.status_code == status.HTTP_401_UNAUTHORIZED and exc.detail == 'Not authenticated')
+                else 'Unauthorized'
+            ),
             errors=None,
             request_id=request.state.request_id,
         ).model_dump(exclude_none=True, by_alias=True),
