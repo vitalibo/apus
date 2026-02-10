@@ -37,12 +37,12 @@ class ApiStackBuilder(Builder):
             vpc=vpc,
         )
 
-        user_pool_props = self.cognito_user_pool(stack, resources)
+        user_pools = self.cognito_user_pools(stack, resources)
 
         for domain_name, domain_resources in self.group_by_domain(resources):
-            self.service(stack, cluster, domain_name, user_pool_props, domain_resources)
+            self.service(stack, cluster, domain_name, user_pools, domain_resources)
 
-    def service(self, stack, cluster, domain_name, user_pool_props, resources) -> None:
+    def service(self, stack, cluster, domain_name, user_pools, resources) -> None:
         construct_id = ''.join(o.title() for o in re.split(r'[-._]', domain_name or ''))
 
         asset_file = s3_assets.Asset(
@@ -55,16 +55,19 @@ class ApiStackBuilder(Builder):
             ),
         )
 
+        user_pools_envs = {
+            f'{auth}_{key}'.upper(): value
+            for auth in {r.spec.authentication for r in resources if isinstance(r.spec, DataGateway)}
+            for key, value in user_pools[auth].items()
+        }
+
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
             stack,
             f'{construct_id}FargateService',
             cluster=cluster,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_registry('vitalibo/apus-api:latest'),
-                environment={
-                    'CONFIG_FILE': asset_file.s3_object_url,
-                    **user_pool_props,
-                },
+                environment={'CONFIG_FILE': asset_file.s3_object_url, **user_pools_envs},
             ),
             public_load_balancer=True,
             **self.custom_domain_name(
@@ -82,31 +85,45 @@ class ApiStackBuilder(Builder):
         )
 
     @staticmethod
-    def cognito_user_pool(stack, resources):
-        if not any(isinstance(r.spec, Authentication) for r in resources):
-            return {}
+    def cognito_user_pools(stack, resources):
+        """Create Cognito User Pools and return their props."""
 
-        user_pool = cognito.CfnUserPool(
-            stack,
-            'UserPool',
-            admin_create_user_config=cognito.CfnUserPool.AdminCreateUserConfigProperty(
-                allow_admin_create_user_only=True,
-            ),
-        )
+        def user_pool_props(auth):
+            if auth.user_pool:
+                return {
+                    'USER_POOL': auth.user_pool,
+                    'CLIENT_ID': auth.client_id,
+                }
 
-        user_pool_client = cognito.CfnUserPoolClient(
-            stack,
-            'UserPoolClient',
-            user_pool_id=user_pool.ref,
-            generate_secret=True,
-            explicit_auth_flows=[
-                'ALLOW_USER_PASSWORD_AUTH',
-            ],
-        )
+            construct_id = ''.join(o.title() for o in re.split(r'[-._]', auth.domain or ''))
+
+            user_pool = cognito.CfnUserPool(
+                stack,
+                f'{construct_id}UserPool',
+                admin_create_user_config=cognito.CfnUserPool.AdminCreateUserConfigProperty(
+                    allow_admin_create_user_only=True,
+                ),
+            )
+
+            user_pool_client = cognito.CfnUserPoolClient(
+                stack,
+                f'{construct_id}UserPoolClient',
+                user_pool_id=user_pool.ref,
+                generate_secret=True,
+                explicit_auth_flows=[
+                    'ALLOW_USER_PASSWORD_AUTH',
+                ],
+            )
+
+            return {
+                'USER_POOL': user_pool.ref,
+                'CLIENT_ID': user_pool_client.ref,
+            }
 
         return {
-            'USER_POOL_ID': user_pool.ref,
-            'USER_POOL_CLIENT_ID': user_pool_client.ref,
+            resource.metadata.name: user_pool_props(resource.spec)
+            for resource in resources
+            if isinstance(resource.spec, Authentication)
         }
 
     @staticmethod
@@ -150,12 +167,15 @@ class ApiStackBuilder(Builder):
         for resource in resources:
             if isinstance(resource.spec, Connection):
                 connections.append(resource)
-            if isinstance(resource.spec, DataGateway):
+            if isinstance(resource.spec, (DataGateway, Authentication)):
                 domains[resource.spec.domain].append(resource)
 
         for gateways in domains.values():  # noqa: PLR1702
             domain_connections = []
             for gateway in gateways:
+                if not isinstance(gateway.spec, DataGateway):
+                    continue
+
                 for connection in connections:
                     if connection.spec == gateway.spec.connection and connection not in domain_connections:
                         domain_connections.append(connection)

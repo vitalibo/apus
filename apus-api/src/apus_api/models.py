@@ -124,9 +124,11 @@ class Authentication(BaseModel):
     __api_version__ = 'apus/v1'
     __kind__ = 'Authentication'
 
-    path: Annotated[str, ...]
+    domain: Annotated[Optional[str], Field(None, min_length=1, max_length=256, pattern='^[A-Za-z][A-Za-z0-9._-]+$')]
+    path: Annotated[str, Field(..., min_length=1, max_length=256, pattern='^[A-Za-z0-9._/-]+$')]
     expires_in: Annotated[int, Field(..., ge=60, alias='expiresIn')]
     user_pool: Annotated[Optional[str], Field(None, alias='userPool')]
+    client_id: Annotated[Optional[str], Field(None, alias='clientId')]
 
 
 class DataGateway(BaseModel):

@@ -27,9 +27,10 @@ class AuthenticationRouter(APIRouter):
 
         self.cognito_idp = boto3.client('cognito-idp')
 
-        self.client_id = os.environ['USER_POOL_CLIENT_ID']
+        self.client_id = os.environ[f'{resource.metadata.name.upper()}_CLIENT_ID']
         self.client_secret = self.cognito_idp.describe_user_pool_client(
-            UserPoolId=os.environ['USER_POOL'], ClientId=self.client_id
+            UserPoolId=os.environ[f'{resource.metadata.name.upper()}_USER_POOL'],
+            ClientId=self.client_id,
         )['UserPoolClient']['ClientSecret']
 
         self.post(
