@@ -58,7 +58,7 @@ class ApiStackBuilder(Builder):
         user_pools_envs = {
             f'{auth}_{key}'.upper(): value
             for auth in {r.spec.authentication for r in resources if isinstance(r.spec, DataGateway)}
-            for key, value in user_pools[auth].items()
+            for key, value in user_pools.get(auth, {}).items()
         }
 
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
