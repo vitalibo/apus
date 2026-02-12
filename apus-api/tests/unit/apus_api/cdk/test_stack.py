@@ -7,7 +7,7 @@ from pydantic import Field
 
 from apus_api.cdk import lookup
 from apus_api.cdk.stack import ApiStackBuilder
-from apus_api.models import DataGateway
+from apus_api.models import Authentication, DataGateway
 
 
 def test_build():
@@ -32,9 +32,15 @@ def test_build():
                 for name in ['request', 'response', 'connection', 'query_template']
             }
         }
-        mock_resource.spec = type('TestDataGateway', (DataGateway,), fields)(domain='apus-api.vitalibo.click')
+        mock_resource.spec = type('TestDataGateway', (DataGateway,), fields)(
+            domain='apus-api.vitalibo.click', authentication='my_auth'
+        )
+        mock_authentication = mock.Mock()
+        mock_authentication.model_dump.return_value = {'foo': 'bar'}
+        mock_authentication.metadata.name = 'my_auth'
+        mock_authentication.spec = Authentication(path='/auth', expiresIn=3600)
 
-        builder.build(stack, [mock_resource])
+        builder.build(stack, [mock_resource, mock_authentication])
 
         template = aws_cdk.assertions.Template.from_stack(stack)
         template.resource_count_is('AWS::EC2::VPC', 1)
@@ -64,7 +70,19 @@ def test_build():
                                 'Value': {
                                     'Fn::Sub': aws_cdk.assertions.Match.string_like_regexp(r's3://.*\.json'),
                                 },
-                            }
+                            },
+                            {
+                                'Name': 'MY_AUTH_USER_POOL',
+                                'Value': {
+                                    'Ref': 'UserPool',
+                                },
+                            },
+                            {
+                                'Name': 'MY_AUTH_CLIENT_ID',
+                                'Value': {
+                                    'Ref': 'UserPoolClient',
+                                },
+                            },
                         ],
                         'Image': 'vitalibo/apus-api:latest',
                         'Name': 'web',
@@ -81,3 +99,34 @@ def test_build():
             },
         )
         template.has_resource_properties('AWS::ECS::Service', {'LaunchType': 'FARGATE'})
+        template.has_resource_properties(
+            'AWS::IAM::Policy',
+            {
+                'PolicyDocument': {
+                    'Statement': aws_cdk.assertions.Match.array_with(
+                        [
+                            {
+                                'Action': [
+                                    'cognito-idp:DescribeUserPoolClient',
+                                    'cognito-idp:InitiateAuth',
+                                ],
+                                'Effect': 'Allow',
+                                'Resource': {
+                                    'Fn::Join': [
+                                        '',
+                                        [
+                                            'arn:aws:cognito-idp:',
+                                            {'Ref': 'AWS::Region'},
+                                            ':',
+                                            {'Ref': 'AWS::AccountId'},
+                                            ':userpool/',
+                                            {'Ref': 'UserPool'},
+                                        ],
+                                    ],
+                                },
+                            }
+                        ]
+                    )
+                }
+            },
+        )

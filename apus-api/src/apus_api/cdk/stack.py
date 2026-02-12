@@ -10,6 +10,7 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
+    aws_iam as iam,
     aws_s3_assets as s3_assets,
 )
 
@@ -56,9 +57,10 @@ class ApiStackBuilder(Builder):
         )
 
         user_pools_envs = {
-            f'{auth}_{key}'.upper(): value
-            for auth in {r.spec.authentication for r in resources if isinstance(r.spec, DataGateway)}
-            for key, value in user_pools.get(auth, {}).items()
+            f'{resource.metadata.name.upper()}_{key}': value
+            for resource in resources
+            if isinstance(resource.spec, Authentication)
+            for key, value in user_pools[resource.metadata.name].items()
         }
 
         fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
@@ -67,7 +69,10 @@ class ApiStackBuilder(Builder):
             cluster=cluster,
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=ecs.ContainerImage.from_registry('vitalibo/apus-api:latest'),
-                environment={'CONFIG_FILE': asset_file.s3_object_url, **user_pools_envs},
+                environment={
+                    'CONFIG_FILE': asset_file.s3_object_url,
+                    **user_pools_envs,
+                },
             ),
             public_load_balancer=True,
             **self.custom_domain_name(
@@ -76,6 +81,24 @@ class ApiStackBuilder(Builder):
                 domain_name=domain_name,
             ),
         )
+
+        resource_arns = [
+            f'arn:aws:cognito-idp:{stack.region}:{stack.account}:userpool/'
+            f'{user_pools[resource.metadata.name]["USER_POOL"]}'
+            for resource in resources
+            if isinstance(resource.spec, Authentication)
+        ]
+
+        if resource_arns:
+            fargate_service.task_definition.add_to_task_role_policy(
+                iam.PolicyStatement(
+                    actions=[
+                        'cognito-idp:DescribeUserPoolClient',
+                        'cognito-idp:InitiateAuth',
+                    ],
+                    resources=resource_arns,
+                )
+            )
 
         asset_file.grant_read(fargate_service.task_definition.task_role)
 
