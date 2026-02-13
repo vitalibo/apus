@@ -7,6 +7,7 @@ members = [
     "apus",
     "apus-api",
     "apus-cli",
+    "apus-monitoring",
     "apus-shared",
 ]
 
@@ -123,6 +124,21 @@ requires-dist = [
     { name = "aws-cdk-lib", specifier = "==2.233.0" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "typer-slim", specifier = "==0.21.1" },
+]
+
+[[package]]
+name = "apus-monitoring"
+version = "0.1.0"
+source = { editable = "apus-monitoring" }
+dependencies = [
+    { name = "apus-shared" },
+    { name = "jinja2" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "apus-shared", editable = "apus-shared" },
+    { name = "jinja2", specifier = "==3.1.6" },
 ]
 
 [[package]]

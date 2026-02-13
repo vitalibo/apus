@@ -1,0 +1,16 @@
+[project]
+name = "apus-monitoring"
+version = "0.1.0"
+description = "A monitoring module for APUS"
+requires-python = "==3.9.*"
+dependencies = [
+    "jinja2==3.1.6",
+    "apus_shared",
+]
+
+[tool.uv.sources]
+apus_shared = { workspace = true }
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"

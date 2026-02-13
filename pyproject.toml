@@ -23,4 +23,5 @@ members = [
     "apus-shared",
     "apus-api",
     "apus-cli",
+    "apus-monitoring"
 ]
