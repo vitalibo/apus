@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from pyxis.resources import load_yaml_all
 
 from apus_shared import models
-from apus_shared.models import BaseModel, Connection, Engine, create_resource
+from apus_shared.models import BaseModel, Connection, Engine, ScheduleStr, create_resource
 
 Resource = create_resource()
 
@@ -194,6 +194,37 @@ def test_connection(subtests):  # noqa: PLR0915
                 'type': 'union_tag_invalid',
             }
         ]
+
+
+@pytest.mark.parametrize(
+    'expr',
+    [
+        *['1 minute', '1 hour', '1 day', '1 week', '1 month', '1 year'],
+        *['12 minutes', '12 hours', '12 days', '12 weeks', '12 months', '12 years'],
+        *['* * * * *', '0 0 * * *', '0 0 1 * *', '0 0 1 1 *', '0 0 1 1 1'],
+        *['*/5 * * * *', '* 8 * * * *', '5 4 * * sun', '0 0,12 1 */2 *', '0 0 * FEB-MAY *', '0 0 * * FRI,SAT'],
+    ],
+)
+def test_schedule(helpers, expr):
+    cls = helpers.create_model(schedule=(ScheduleStr, ...))
+
+    actual = cls(schedule=expr)
+
+    assert isinstance(actual.schedule, str)
+    assert actual.schedule == expr
+
+
+@pytest.mark.parametrize('expr', ['1', 'every 1 minute', '* * * *', '-2 * * * *', '0 0 1 1 1 1 1', '*****'])
+def test_schedule_invalid(helpers, expr):
+    cls = helpers.create_model(schedule=(ScheduleStr, ...))
+
+    with pytest.raises(ValidationError) as e:
+        cls(schedule=expr)
+
+    error = e.value.errors()[0]
+    assert error['type'] == 'value_error'
+    assert error['msg'] == 'value is not a valid cron or interval expression'
+    assert error['loc'] == ('schedule',)
 
 
 def json_resource(api_version, kind, spec):

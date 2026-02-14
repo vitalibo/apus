@@ -1,0 +1,25 @@
+apiVersion: apus/v1
+kind: Channel
+metadata:
+  name: MyEmailChannel
+spec:
+  type: email
+  host: smtp.example.com
+  port: 587
+  username: admin
+  password: 5ecr3t  # pragma: allowlist secret
+
+---
+apiVersion: apus/v1
+kind: Channel
+metadata:
+  name: MyEmailChannel
+spec:
+  type: email
+  host: smtp.example.com
+  port: 587
+  username: admin
+  password: 5ecr3t  # pragma: allowlist secret
+  recipients:
+    - foo@apus.io
+    - bar@apus.io

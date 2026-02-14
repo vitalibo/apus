@@ -1,0 +1,7 @@
+apiVersion: apus/v1
+kind: Channel
+metadata:
+  name: MyCloudWatchChannel
+spec:
+  type: cloudwatch
+  namespace: APUS/MyApp

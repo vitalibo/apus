@@ -1,0 +1,36 @@
+Channel:
+  cloudwatch:
+    apiVersion: apus/v1
+    kind: Channel
+    metadata:
+      name: cloudwatch
+    spec:
+      type: cloudwatch
+      namespace: APUS/MyApp
+  email:
+    apiVersion: apus/v1
+    kind: Channel
+    metadata:
+      name: email
+    spec:
+      type: email
+      host: smtp.example.com
+      port: 587
+      username: admin
+      password: 5ecr3t  # pragma: allowlist secret
+      recipients:
+        - foo
+        - bar
+Connection:
+  mysql:
+    apiVersion: apus/v1
+    kind: Connection
+    metadata:
+      name: mysql
+    spec:
+      engine: mysql
+      host: mysql.example.com
+      port: 3306
+      username: root
+      password: 5ecr3t  # pragma: allowlist secret
+      database: mydb

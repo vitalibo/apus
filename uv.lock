@@ -155,6 +155,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "aws-cdk-lib" },
+    { name = "croniter" },
 ]
 
 [package.metadata]
@@ -166,7 +167,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "aws-cdk-lib", specifier = "==2.233.0" }]
+dev = [
+    { name = "aws-cdk-lib", specifier = "==2.233.0" },
+    { name = "croniter", specifier = "==2.0.1" },
+]
 
 [[package]]
 name = "argcomplete"
@@ -445,6 +449,19 @@ wheels = [
 [package.optional-dependencies]
 toml = [
     { name = "tomli" },
+]
+
+[[package]]
+name = "croniter"
+version = "2.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "pytz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/13/5e/659de55a2c07a314ec1ec3b32acbb8839246d6ead49e4cb3743425f63fb6/croniter-2.0.1.tar.gz", hash = "sha256:d199b2ec3ea5e82988d1f72022433c5f9302b3b3ea9e6bfd6a1518f6ea5e700a", size = 42599, upload-time = "2023-10-11T08:02:13.276Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/86/c1ce37af79385a106aacdd40b6e25ff25b2d888f2e64a05ee4e5b05f5768/croniter-2.0.1-py2.py3-none-any.whl", hash = "sha256:4cb064ce2d8f695b3b078be36ff50115cf8ac306c10a7e8653ee2a5b534673d7", size = 19787, upload-time = "2023-10-11T08:02:10.664Z" },
 ]
 
 [[package]]

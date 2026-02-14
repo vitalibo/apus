@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import re
+from collections import UserString
 from enum import Enum
 from functools import reduce
-from typing import Annotated, Generic, Literal, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Annotated, Any, Generic, Literal, Optional, TypeVar, Union
 from urllib.parse import quote_plus
 
 import pydantic
 import sqlalchemy
 from pydantic import ConfigDict, Discriminator, Field, RootModel, Tag
+from pydantic_core import PydanticCustomError, core_schema
 from pyxis.enum import EnumMixin
+
+if TYPE_CHECKING:
+    from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
+    from pydantic.json_schema import JsonSchemaValue
 
 __all__ = [
     'BaseModel',
@@ -17,6 +23,7 @@ __all__ = [
     'Engine',
     'Metadata',
     'Resource',
+    'ScheduleStr',
     'create_resource',
 ]
 
@@ -202,3 +209,50 @@ class SnowflakeConnection(Connection):
                 'private_key': kwargs.get('private_key', self.private_key),
             },
         )
+
+
+class ScheduleStr(UserString):
+    """Pydantic model for a schedule string, which can be either interval expressions or cron expressions."""
+
+    @classmethod
+    def __get_pydantic_core_schema__(  # noqa: PLW3201
+        cls, _source: type[Any], _handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        try:
+            import croniter  # noqa: PLC0415,F401
+        except ImportError as e:
+            raise ImportError('schedule validator requires croniter package, run `pip install croniter`') from e
+
+        return core_schema.no_info_after_validator_function(cls._validate, core_schema.str_schema())
+
+    @classmethod
+    def __get_pydantic_json_schema__(  # noqa: PLW3201
+        cls, _core_schema: core_schema.CoreSchema, _handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        field_schema = _handler(_core_schema)
+        field_schema.update(type='string', format='schedule')
+        return field_schema
+
+    @classmethod
+    def _validate(cls, expr: str) -> str:
+        if cls.is_interval(expr) or cls.is_cron(expr):
+            return expr
+
+        raise PydanticCustomError(
+            'value_error',
+            'value is not a valid cron or interval expression',
+        )
+
+    @staticmethod
+    def is_interval(expr: str) -> bool:
+        """Checks if the given expression is a valid interval expression."""
+
+        return re.match(r'(\d+ (minute|hour|day|week|month|year)s?)', expr) is not None
+
+    @staticmethod
+    def is_cron(expr: str) -> bool:
+        """Checks if the given expression is a valid cron expression."""
+
+        from croniter import croniter  # noqa: PLC0415
+
+        return croniter.is_valid(expr)

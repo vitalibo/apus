@@ -13,6 +13,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "aws-cdk-lib==2.233.0",
+    "croniter==2.0.1",
 ]
 
 [tool.uv.sources]

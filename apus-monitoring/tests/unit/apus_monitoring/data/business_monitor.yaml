@@ -1,0 +1,32 @@
+apiVersion: apus/v1
+kind: BusinessMonitor
+metadata:
+  name: MyBusinessMonitor
+spec:
+  schedule: '* */6 * * *'
+  connection: mysql
+  metric: foo
+  dimensions:
+    - bar
+    - baz:
+        name: Baz
+    - field: qux
+      name: Qux
+      description: Qux description
+  query_template: |
+    SELECT bar,
+           baz,
+           qux,
+           COUNT(*) AS foo
+    FROM table
+    GROUP BY bar, baz
+  channels:
+    - cloudwatch
+    - email:
+        recipients:
+          - vboyarsky@apus.io
+    - type: slack
+      token: xoxb-123456789012-1234567890123-12345678901234567890  # pragma: allowlist secret
+      channels:
+        - foo
+        - bar

@@ -1,0 +1,19 @@
+apiVersion: apus/v1
+kind: Channel
+metadata:
+  name: MySlackChannel
+spec:
+  type: slack
+  token: xoxb-123456789012-123456789012-123456789012-123456789012  # pragma: allowlist secret
+
+---
+apiVersion: apus/v1
+kind: Channel
+metadata:
+  name: MySlackChannel
+spec:
+  type: slack
+  token: xoxb-123456789012-123456789012-123456789012-123456789012  # pragma: allowlist secret
+  channels:
+    - general
+    - random
