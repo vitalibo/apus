@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 13px;
+            color: #1a1a1a;
+            background-color: #f5f5f0;
+            padding: 40px 24px;
+        }
+
+        .wrapper {
+            max-width: 1080px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border: 1px solid #d4d4cc;
+            border-top: 3px solid #1a1a1a;
+        }
+
+        /* ── Header ── */
+        .header {
+            padding: 28px 32px 24px;
+            border-bottom: 1px solid #e8e8e4;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0d0d0d;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 300;
+            color: #6b6b65;
+            line-height: 1.5;
+        }
+
+        .table-container {
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        thead {
+            background-color: #1a1a1a;
+        }
+
+        th {
+            padding: 10px 16px;
+            text-align: left;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #b0b0a8;
+            border-right: 1px solid #2e2e2e;
+            white-space: nowrap;
+        }
+
+        th:last-child {
+            border-right: none;
+        }
+
+        td {
+            padding: 11px 16px;
+            border-bottom: 1px solid #ebebе7;
+            border-right: 1px solid #f0f0ec;
+            font-size: 12.5px;
+            color: #1a1a1a;
+            font-weight: 400;
+            vertical-align: top;
+            line-height: 1.4;
+        }
+
+        td:last-child {
+            border-right: none;
+        }
+
+        td:first-child {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            color: #3a3a3a;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #fafafa;
+        }
+
+        tr:hover td {
+            background-color: #f5f5f0;
+        }
+
+
+        .footer {
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .footer-brand {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #b0b0a8;
+        }
+
+        .footer-brand span {
+            color: #1a1a1a;
+        }
+
+    </style>
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="header">
+        <div class="header-left">
+            <h2>{{ monitor.metadata.name }}</h2>
+            {% if 'description' in monitor.metadata.annotations %}
+            <p class="subtitle">{{ monitor.metadata.annotations['description'] }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if alerts %}
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                {% for key in alerts[0].keys() %}
+                {% if key in monitor.spec.dimensions %}
+                <th>{{ monitor.spec.dimensions[key].name or key }}</th>
+                {% elif key == monitor.spec.metric.field %}
+                <th>{{ monitor.spec.metric.name or key }}</th>
+                {% else %}
+                <th>{{ key }}</th>
+                {% endif %}
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for alert in alerts %}
+            <tr>
+                {% for value in alert.values() %}
+                <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <div class="footer-brand"><span>APUS</span> Monitoring</div>
+    </div>
+</div>
+
+</body>
+</html>

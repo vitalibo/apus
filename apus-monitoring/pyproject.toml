@@ -5,6 +5,8 @@ description = "A monitoring module for APUS"
 requires-python = "==3.9.*"
 dependencies = [
     "jinja2==3.1.6",
+    "slack_sdk==3.40.0",
+    "sqlalchemy==2.0.45",
     "apus_shared",
 ]
 

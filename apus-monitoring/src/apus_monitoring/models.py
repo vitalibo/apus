@@ -1,7 +1,7 @@
 from typing import Annotated, Literal, Optional
 
-from apus_shared.fields import expand_dict, expand_list, expand_obj, overridable, reference  # noqa: TC002
-from apus_shared.models import BaseModel, Connection, ScheduleStr  # noqa: TC002
+from apus_shared.fields import expand_dict, expand_list, expand_obj, overridable, reference
+from apus_shared.models import BaseModel, Connection, ScheduleStr, create_resource
 from pydantic import Field
 
 __all__ = [
@@ -12,6 +12,7 @@ __all__ = [
     'Dimension',
     'EmailChannel',
     'Metric',
+    'Resource',
     'SlackChannel',
 ]
 
@@ -77,3 +78,6 @@ class BusinessMonitor(BaseModel):
     dimensions: Annotated[dict[str, Dimension], expand_dict('field'), Field(min_length=0, max_length=16)]
     query_template: Annotated[str, ...]
     channels: Annotated[list[reference(Channel)], expand_list(), Field(min_length=1, max_length=16)]
+
+
+Resource = create_resource()
