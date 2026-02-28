@@ -1,0 +1,74 @@
+[
+  [
+    "",
+    [],
+    {
+      "Namespace": "APUS/Monitoring",
+      "MetricData": [
+        {
+          "MetricName": "Metric #1",
+          "Dimensions": [
+            {
+              "Name": "dim1",
+              "Value": "value_01"
+            },
+            {
+              "Name": "Dimension #2",
+              "Value": "value_02"
+            },
+            {
+              "Name": "Dimension #3",
+              "Value": "value_03"
+            }
+          ],
+          "Value": 0.0
+        },
+        {
+          "MetricName": "Metric #1",
+          "Dimensions": [
+            {
+              "Name": "dim1",
+              "Value": "value_11"
+            },
+            {
+              "Name": "Dimension #2",
+              "Value": "value_12"
+            },
+            {
+              "Name": "Dimension #3",
+              "Value": "value_13"
+            }
+          ],
+          "Value": 1.23
+        }
+      ]
+    }
+  ],
+  [
+    "",
+    [],
+    {
+      "Namespace": "APUS/Monitoring",
+      "MetricData": [
+        {
+          "MetricName": "Metric #1",
+          "Dimensions": [
+            {
+              "Name": "dim1",
+              "Value": "value_21"
+            },
+            {
+              "Name": "Dimension #2",
+              "Value": "value_22"
+            },
+            {
+              "Name": "Dimension #3",
+              "Value": "value_23"
+            }
+          ],
+          "Value": 2.46
+        }
+      ]
+    }
+  ]
+]

@@ -1,0 +1,96 @@
+[
+  [
+    "",
+    [],
+    {
+      "channel": "#general",
+      "text": "[APUS] MyMonitor",
+      "blocks": [
+        {
+          "text": {
+            "text": "\n*MyMonitor*\n\n\n",
+            "type": "mrkdwn"
+          },
+          "type": "section"
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "elements": [
+            {
+              "text": "Sent by *APUS Monitoring*.",
+              "type": "mrkdwn"
+            }
+          ],
+          "type": "context"
+        }
+      ],
+      "attachments": [
+        {
+          "blocks": [
+            {
+              "fields": [
+                {
+                  "text": "*dim1*\nvalue_01\n\n*Dimension #2*\nvalue_02\n\n*Dimension #3*\nvalue_03\n",
+                  "type": "mrkdwn"
+                },
+                {
+                  "text": "*Metric #1*\n0.0\n",
+                  "type": "mrkdwn"
+                }
+              ],
+              "type": "section"
+            },
+            {
+              "type": "divider"
+            }
+          ],
+          "color": "#ff0000"
+        },
+        {
+          "blocks": [
+            {
+              "fields": [
+                {
+                  "text": "*dim1*\nvalue_11\n\n*Dimension #2*\nvalue_12\n\n*Dimension #3*\nvalue_13\n",
+                  "type": "mrkdwn"
+                },
+                {
+                  "text": "*Metric #1*\n1.23\n",
+                  "type": "mrkdwn"
+                }
+              ],
+              "type": "section"
+            },
+            {
+              "type": "divider"
+            }
+          ],
+          "color": "#ff0000"
+        },
+        {
+          "blocks": [
+            {
+              "fields": [
+                {
+                  "text": "*dim1*\nvalue_21\n\n*Dimension #2*\nvalue_22\n\n*Dimension #3*\nvalue_23\n",
+                  "type": "mrkdwn"
+                },
+                {
+                  "text": "*Metric #1*\n2.46\n",
+                  "type": "mrkdwn"
+                }
+              ],
+              "type": "section"
+            },
+            {
+              "type": "divider"
+            }
+          ],
+          "color": "#ff0000"
+        }
+      ]
+    }
+  ]
+]

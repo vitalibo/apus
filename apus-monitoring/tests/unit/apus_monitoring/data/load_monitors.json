@@ -1,0 +1,78 @@
+{
+  "resources": [
+    {
+      "apiVersion": "apus/v1",
+      "kind": "BusinessMonitor",
+      "metadata": {
+        "name": "monitor"
+      },
+      "spec": {
+        "schedule": "* */6 * * *",
+        "connection": "postgres",
+        "metric": "foo",
+        "dimensions": [
+          "bar",
+          {
+            "baz": {
+              "name": "Baz"
+            }
+          },
+          {
+            "field": "qux",
+            "name": "Qux",
+            "description": "Qux description"
+          }
+        ],
+        "query_template": "SELECT * FROM table",
+        "channels": [
+          "cloudwatch",
+          {
+            "slack": {
+              "channels": [
+                "foo",
+                "bar"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "apus/v1",
+      "kind": "Connection",
+      "metadata": {
+        "name": "postgres"
+      },
+      "spec": {
+        "engine": "postgresql",
+        "host": "localhost",
+        "port": 5432,
+        "database": "mydb",
+        "username": "user",
+        "password": "123"
+      }
+    },
+    {
+      "apiVersion": "apus/v1",
+      "kind": "Channel",
+      "metadata": {
+        "name": "cloudwatch"
+      },
+      "spec": {
+        "type": "cloudwatch",
+        "namespace": "APUS/Monitoring"
+      }
+    },
+    {
+      "apiVersion": "apus/v1",
+      "kind": "Channel",
+      "metadata": {
+        "name": "slack"
+      },
+      "spec": {
+        "type": "slack",
+        "token": "xoxb-1234567"
+      }
+    }
+  ]
+}

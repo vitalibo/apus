@@ -1,0 +1,14 @@
+Content-Type: multipart/alternative; boundary="===============<random boundary>=="
+MIME-Version: 1.0
+From: test
+To: vitalibo@apus.io
+Subject: [APUS] MyMonitor
+
+--===============<random boundary>==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+<base64 encoded html>
+
+--===============<random boundary>==--

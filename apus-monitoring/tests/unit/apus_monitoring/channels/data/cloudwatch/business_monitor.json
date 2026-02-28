@@ -1,0 +1,42 @@
+{
+  "apiVersion": "apus/v1",
+  "kind": "BusinessMonitor",
+  "metadata": {
+    "name": "MyMonitor"
+  },
+  "spec": {
+    "schedule": "* */6 * * *",
+    "connection": {
+      "engine": "postgresql",
+      "username": "test",
+      "host": "localhost",
+      "password": "123",
+      "port": 5432,
+      "database": "mydb"
+    },
+    "metric":{
+      "name": "Metric #1",
+      "field": "metric1"
+    },
+    "dimensions": [
+      "dim1",
+      {
+        "dim2": {
+          "name": "Dimension #2"
+        }
+      },
+      {
+        "field": "dim3",
+        "name": "Dimension #3",
+        "description": "This is dimension three"
+      }
+    ],
+    "query_template": "SELECT * FROM foo",
+    "channels": [
+      {
+        "type": "cloudwatch",
+        "namespace": "APUS/Monitoring"
+      }
+    ]
+  }
+}

@@ -6,7 +6,9 @@ from apus_monitoring.models import BusinessMonitor, CloudWatchChannel
 
 
 class CloudWatchChannelHandler(ChannelHandler):
-    """A channel handler for sending metrics to CloudWatch."""
+    """Send alerts to CloudWatch as custom metrics."""
+
+    BATCH_SIZE = 1000
 
     def __init__(self, monitor: Resource[BusinessMonitor], channel: CloudWatchChannel) -> None:
         super().__init__(monitor, channel)
@@ -30,8 +32,8 @@ class CloudWatchChannelHandler(ChannelHandler):
             for alert in alerts
         ]
 
-        for i in range(0, len(metric_data), 1000):
+        for i in range(0, len(metric_data), self.BATCH_SIZE):
             self._cloudwatch.put_metric_data(
                 Namespace=self._channel.namespace,
-                MetricData=metric_data[i : i + 1000],
+                MetricData=metric_data[i : i + self.BATCH_SIZE],
             )
