@@ -22,6 +22,9 @@ ignore = [
     "FBT", # flake8-boolean-trap
     "CPY", # flake8-copyright
     "EM", # flake8-errmsg
+    "TC001", # typing-only-first-party-import
+    "TC002", # typing-only-third-party-import
+    "TC003", # typing-only-standard-library-import
     "TD001", # invalid-todo-tag
     "TD002", # missing-todo-author
     "TD003", # missing-todo-link

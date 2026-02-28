@@ -7,14 +7,14 @@ from typing import Annotated
 
 import boto3
 import pytz
-from apus_shared.models import Resource  # noqa: TC002
+from apus_shared.models import Resource
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestFormStrict  # noqa: TC002
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestFormStrict
 from jose import jwt
 from starlette import status
 
 from apus_api import schemas
-from apus_api.models import Authentication, Identity  # noqa: TC001
+from apus_api.models import Authentication, Identity
 
 
 class AuthenticationRouter(APIRouter):

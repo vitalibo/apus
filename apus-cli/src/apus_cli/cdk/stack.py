@@ -1,6 +1,6 @@
 from apus_api.cdk.stack import ApiStackBuilder  # noqa: F401
 from apus_shared.cdk import builder_registry
-from aws_cdk import App, Stack  # noqa: TC002
+from aws_cdk import App, Stack
 
 
 class ApusStack(Stack):

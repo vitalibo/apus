@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from fastapi import Request  # noqa: TC002
+from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy import orm
 

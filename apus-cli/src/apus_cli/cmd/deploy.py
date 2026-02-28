@@ -1,4 +1,4 @@
-from pathlib import Path  # noqa: TC003
+from pathlib import Path
 from urllib.parse import urlparse
 
 import typer
