@@ -40,6 +40,7 @@ jobs:
           for module in shared api monitoring cli; do
             uv version --package apus-$module ${{ github.ref_name }}
           done
+          sed -i "s|vitalibo/apus-api:latest|vitalibo/apus-api:${{ github.ref_name }}|g" apus-api/src/apus_api/cdk/stack.py
           just build
 
       - name: 'Upload artifacts'
