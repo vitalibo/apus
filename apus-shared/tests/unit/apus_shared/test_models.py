@@ -201,8 +201,9 @@ def test_connection(subtests):  # noqa: PLR0915
     [
         *['1 minute', '1 hour', '1 day', '1 week', '1 month', '1 year'],
         *['12 minutes', '12 hours', '12 days', '12 weeks', '12 months', '12 years'],
-        *['* * * * *', '0 0 * * *', '0 0 1 * *', '0 0 1 1 *', '0 0 1 1 1'],
-        *['*/5 * * * *', '* 8 * * * *', '5 4 * * sun', '0 0,12 1 */2 *', '0 0 * FEB-MAY *', '0 0 * * FRI,SAT'],
+        *['* * * * ? *', '0 0 * * ? *', '0 0 1 * ? *', '0 0 1 1 ? *', '0 0 ? 1 MON *', '0 0 ? 1 FRI 2026'],
+        *['*/5 * * * ? *', '* 8 * * ? *', '5 4 ? * sun *', '0 0,2 1 */2 ? *', '0 0 * FEB-MAY ? *', '0 0 ? * FRI,SAT *'],
+        *['*/5 0,12 ? * fri 2025,2026', '0,15,30,45 * ? * mon-fri 2025-2026'],
     ],
 )
 def test_schedule(helpers, expr):

@@ -76,7 +76,7 @@ def test_business_monitor():
     assert resource.kind == 'BusinessMonitor'
     assert resource.metadata.name == 'MyBusinessMonitor'
     assert isinstance(resource.spec, BusinessMonitor)
-    assert resource.spec.schedule == '* */6 * * *'
+    assert resource.spec.schedule == '* */6 * * ? *'
     assert isinstance(resource.spec.connection, Connection)
     assert resource.spec.connection.engine == Engine.MYSQL
     assert resource.spec.connection.host == 'mysql.example.com'

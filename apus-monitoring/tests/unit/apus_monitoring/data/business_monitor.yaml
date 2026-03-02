@@ -3,7 +3,7 @@ kind: BusinessMonitor
 metadata:
   name: MyBusinessMonitor
 spec:
-  schedule: '* */6 * * *'
+  schedule: '* */6 * * ? *'
   connection: mysql
   metric: foo
   dimensions:

@@ -219,9 +219,9 @@ class ScheduleStr(UserString):
         cls, _source: type[Any], _handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
         try:
-            import croniter  # noqa: PLC0415,F401
+            import aws_croniter  # noqa: PLC0415,F401
         except ImportError as e:
-            raise ImportError('schedule validator requires croniter package, run `pip install croniter`') from e
+            raise ImportError('schedule validator requires aws_croniter package, run `pip install aws-croniter`') from e
 
         return core_schema.no_info_after_validator_function(cls._validate, core_schema.str_schema())
 
@@ -253,6 +253,10 @@ class ScheduleStr(UserString):
     def is_cron(expr: str) -> bool:
         """Checks if the given expression is a valid cron expression."""
 
-        from croniter import croniter  # noqa: PLC0415
+        from aws_croniter import AwsCroniter, exceptions  # noqa: PLC0415
 
-        return croniter.is_valid(expr)
+        try:
+            AwsCroniter(expr)
+        except exceptions.AwsCroniterExpressionError:
+            return False
+        return True

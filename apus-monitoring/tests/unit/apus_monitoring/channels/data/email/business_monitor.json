@@ -8,7 +8,7 @@
     }
   },
   "spec": {
-    "schedule": "* */6 * * *",
+    "schedule": "* */6 * * ? *",
     "connection": {
       "engine": "postgresql",
       "username": "test",

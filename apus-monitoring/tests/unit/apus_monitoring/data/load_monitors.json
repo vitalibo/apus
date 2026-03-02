@@ -7,7 +7,7 @@
         "name": "monitor"
       },
       "spec": {
-        "schedule": "* */6 * * *",
+        "schedule": "* */6 * * ? *",
         "connection": "postgres",
         "metric": "foo",
         "dimensions": [
