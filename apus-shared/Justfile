@@ -18,6 +18,10 @@ test *args:
 coverage *args:
     just test --cov=apus_shared --cov-branch {{ args }}
 
+# build # build package
+build *args:
+    uv build --sdist --wheel {{ args }}
+
 # clean workdir
 clean:
     rm -rf ./.pytest_cache ./build ./dist ./src/*.egg-info ./.coverage

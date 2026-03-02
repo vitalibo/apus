@@ -44,6 +44,13 @@ coverage *args:
     just apus-monitoring::coverage {{ args }}
     just apus-cli::coverage {{ args }}
 
+# build packages
+build *args:
+    just apus-shared::build {{ args }}
+    just apus-api::build {{ args }}
+    just apus-monitoring::build {{ args }}
+    just apus-cli::build {{ args }}
+
 # clean workdir
 clean:
     just apus-shared::clean

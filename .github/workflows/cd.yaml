@@ -2,8 +2,61 @@ name: 'Continuous Delivery (CD)'
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - '*'
 
 jobs:
+  release:
+    name: 'Release'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v6
+
+      - name: 'Set up Just'
+        uses: extractions/setup-just@v3
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.9
+
+      - name: 'Install uv'
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: 'Install dependencies'
+        run: |
+          just sync
+
+      - name: 'Build wheel'
+        run: |
+          for module in shared api monitoring cli; do
+            uv version --package apus-$module ${{ github.ref_name }}
+          done
+          just build
+
+      - name: 'Upload artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          path: dist/
+
+      - name: 'Create GitHub release'
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: |
+            dist/apus_shared-${{ github.ref_name }}-py3-none-any.whl
+            dist/apus_api-${{ github.ref_name }}-py3-none-any.whl
+            dist/apus_monitoring-${{ github.ref_name }}-py3-none-any.whl
+            dist/apus_cli-${{ github.ref_name }}-py3-none-any.whl
+
   docker:
     name: 'Docker'
     runs-on: ubuntu-latest
@@ -27,4 +80,4 @@ jobs:
           context: .
           file: ./apus-api/Dockerfile
           push: true
-          tags: 'vitalibo/apus-api:latest'
+          tags: 'vitalibo/apus-api:latest,vitalibo/apus-api:${{ github.ref_name }}'
