@@ -1,4 +1,5 @@
 from apus_api.cdk.stack import ApiStackBuilder  # noqa: F401
+from apus_monitoring.cdk.stack import MonitoringStackBuilder  # noqa: F401
 from apus_shared.cdk import builder_registry
 from aws_cdk import App, Stack
 
