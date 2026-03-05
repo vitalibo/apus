@@ -13,6 +13,7 @@ jobs:
 
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - name: 'Checkout repository'
@@ -43,10 +44,8 @@ jobs:
           sed -i "s|vitalibo/apus-api:latest|vitalibo/apus-api:${{ github.ref_name }}|g" apus-api/src/apus_api/cdk/stack.py
           just build
 
-      - name: 'Upload artifacts'
-        uses: actions/upload-artifact@v4
-        with:
-          path: dist/
+          mkdir -p dist_pypi
+          cp dist/apus_cli-${{ github.ref_name }}-py3-none-any.whl dist_pypi/
 
       - name: 'Create GitHub release'
         uses: softprops/action-gh-release@v2
@@ -57,6 +56,11 @@ jobs:
             dist/apus_api-${{ github.ref_name }}-py3-none-any.whl
             dist/apus_monitoring-${{ github.ref_name }}-py3-none-any.whl
             dist/apus_cli-${{ github.ref_name }}-py3-none-any.whl
+
+      - name: 'Publish package distributions to PyPI'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist_pypi/
 
   docker:
     name: 'Docker'
