@@ -110,9 +110,6 @@ name = "apus-cli"
 version = "0.1.0"
 source = { editable = "apus-cli" }
 dependencies = [
-    { name = "apus-api" },
-    { name = "apus-monitoring" },
-    { name = "apus-shared" },
     { name = "aws-cdk-lib" },
     { name = "pyyaml" },
     { name = "typer-slim" },
@@ -120,9 +117,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "apus-api", editable = "apus-api" },
-    { name = "apus-monitoring", editable = "apus-monitoring" },
-    { name = "apus-shared", editable = "apus-shared" },
     { name = "aws-cdk-lib", specifier = "==2.233.0" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "typer-slim", specifier = "==0.21.1" },

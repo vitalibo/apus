@@ -20,5 +20,5 @@ dev = [
 pyxis = { url = "https://github.com/vitalibo/pyxis/archive/refs/tags/0.2.10-pyspark.zip" }
 
 [build-system]
-requires = ["uv_build"]
-build-backend = "uv_build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -20,8 +20,11 @@ coverage *args:
 
 # build # build package
 build *args:
+    mkdir -p ./lib
+    for module in shared api monitoring; do ln -s ../../apus-$module/src/apus_$module ./lib/apus_$module ; done
     uv build --sdist --wheel {{ args }}
+    rm -rf ./lib
 
 # clean workdir
 clean:
-    rm -rf ./.pytest_cache ./build ./dist ./src/*.egg-info ./.coverage
+    rm -rf ./.pytest_cache ./build ./dist ./src/*.egg-info ./.coverage ./lib
