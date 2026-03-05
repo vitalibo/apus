@@ -57,4 +57,4 @@ clean:
     just apus-api::clean
     just apus-monitoring::clean
     just apus-cli::clean
-    rm -rf ./cdk.out
+    rm -rf ./cdk.out ./dist
