@@ -2,18 +2,14 @@
 name = "apus-cli"
 version = "0.1.0"
 description = "CLI for APUS deployment"
-requires-python = "==3.9.*"
+requires-python = ">=3.9.0"
 dependencies = [
+    "pydantic==2.10.6",
     "typer-slim==0.21.1",
     "pyyaml==6.0.3",
+    "boto3==1.42.19",
     "aws-cdk-lib==2.233.0",
-]
-
-[optional-dependencies]
-workspace = [
-    "apus-api",
-    "apus-monitoring",
-    "apus-shared",
+    "aws-croniter==1.0.5",
 ]
 
 [tool.uv.sources]

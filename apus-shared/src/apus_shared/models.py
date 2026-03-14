@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Annotated, Any, Generic, Literal, Optional, Ty
 from urllib.parse import quote_plus
 
 import pydantic
-import sqlalchemy
 from pydantic import ConfigDict, Discriminator, Field, RootModel, Tag
 from pydantic_core import PydanticCustomError, core_schema
 from pyxis.enum import EnumMixin
@@ -143,7 +142,9 @@ class Connection(BaseModel):
     database: str
     properties: Annotated[dict[str, str], Field(default_factory=dict)]
 
-    def create_engine(self, **kwargs) -> sqlalchemy.Engine:
+    def create_engine(self, **kwargs):
+        import sqlalchemy  # noqa: PLC0415
+
         params = {
             'driver': self.engine.driver,
             'host': kwargs.get('host', self.host),
@@ -178,7 +179,8 @@ class SnowflakeConnection(Connection):
     warehouse: Annotated[Optional[str], Field(default=None)]
     role: Annotated[Optional[str], Field(default=None)]
 
-    def create_engine(self, **kwargs) -> sqlalchemy.Engine:
+    def create_engine(self, **kwargs):
+        import sqlalchemy  # noqa: PLC0415
         from snowflake.sqlalchemy import URL  # noqa: PLC0415
 
         params = {

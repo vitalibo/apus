@@ -111,6 +111,9 @@ version = "0.1.0"
 source = { editable = "apus-cli" }
 dependencies = [
     { name = "aws-cdk-lib" },
+    { name = "aws-croniter" },
+    { name = "boto3" },
+    { name = "pydantic" },
     { name = "pyyaml" },
     { name = "typer-slim" },
 ]
@@ -118,6 +121,9 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "aws-cdk-lib", specifier = "==2.233.0" },
+    { name = "aws-croniter", specifier = "==1.0.5" },
+    { name = "boto3", specifier = "==1.42.19" },
+    { name = "pydantic", specifier = "==2.10.6" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "typer-slim", specifier = "==0.21.1" },
 ]
