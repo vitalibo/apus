@@ -3,6 +3,7 @@ import re
 import tempfile
 
 import pyxis.resources
+from apus_shared.cdk import requirements
 from apus_shared.cdk.builder_registry import Builder, register
 from apus_shared.models import ScheduleStr
 from aws_cdk import aws_glue, aws_iam, aws_s3_assets
@@ -78,12 +79,7 @@ class MonitoringStackBuilder(Builder):
             max_retries=0,
             timeout=60,
             default_arguments={
-                '--additional-python-modules': ','.join(
-                    [
-                        f'https://github.com/vitalibo/apus/releases/download/0.0.6/{name}-0.0.6-py3-none-any.whl'
-                        for name in ['apus_shared', 'apus_monitoring']
-                    ]
-                ),
+                '--additional-python-modules': requirements.apus_monitoring,
                 '--config-file': asset_file.s3_object_url,
             },
         )

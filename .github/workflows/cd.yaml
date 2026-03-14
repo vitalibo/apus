@@ -42,6 +42,7 @@ jobs:
             uv version --package apus-$module ${{ github.ref_name }}
           done
           sed -i "s|vitalibo/apus-api:latest|vitalibo/apus-api:${{ github.ref_name }}|g" apus-api/src/apus_api/cdk/stack.py
+          python3 apus-shared/src/apus_shared/cdk/requirements.py
           just build
 
           mkdir -p dist_pypi
